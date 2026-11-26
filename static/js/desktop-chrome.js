@@ -2,6 +2,12 @@
    Antigravity Studio — Frameless Codex Titlebar, Menus & Global Shortcuts
    ========================================================================== */
 
+import { t } from './i18n.js';
+
+const ZOOM_STORAGE_KEY = 'antigravity_ui_zoom_pct';
+const MIN_ZOOM_PCT = 85;
+const MAX_ZOOM_PCT = 130;
+
 export function createDesktopChromeController({
   appEl,
   state,
@@ -48,10 +54,108 @@ export function createDesktopChromeController({
     syncNavArrows();
   };
 
+  const clampZoomPct = (val) => {
+    const n = Number(val);
+    if (!Number.isFinite(n)) return 100;
+    return Math.max(MIN_ZOOM_PCT, Math.min(MAX_ZOOM_PCT, Math.round(n)));
+  };
+
   let uiZoomPct = 100;
-  const applyUiZoom = (nextPct) => {
-    uiZoomPct = Math.max(80, Math.min(130, nextPct));
-    document.documentElement.style.zoom = `${uiZoomPct}%`;
+  try {
+    const savedZoom = localStorage.getItem(ZOOM_STORAGE_KEY);
+    if (savedZoom !== null) uiZoomPct = clampZoomPct(savedZoom);
+  } catch {
+    // ignore storage restrictions
+  }
+
+  let pendingZoomRaf = 0;
+  let zoomAnimTimer = null;
+  let zoomHudEl = null;
+  let zoomHudTimer = null;
+
+  const showZoomHud = (pct, boundState = '') => {
+    if (!document.body) return;
+    if (!zoomHudEl) {
+      zoomHudEl = document.createElement('div');
+      zoomHudEl.className = 'ui-zoom-hud';
+      zoomHudEl.setAttribute('data-i18n-skip', '1');
+      zoomHudEl.setAttribute('role', 'status');
+      zoomHudEl.setAttribute('aria-live', 'polite');
+      document.body.appendChild(zoomHudEl);
+    }
+    const suffix =
+      boundState === 'max'
+        ? ` · ${t('已达上限')}`
+        : boundState === 'min'
+          ? ` · ${t('已达下限')}`
+          : boundState === 'reset'
+            ? ` · ${t('默认')}`
+            : '';
+    zoomHudEl.innerHTML = `<span>${pct}%</span>${suffix ? `<span class="ui-zoom-hud-bound">${suffix}</span>` : ''}`;
+    zoomHudEl.classList.add('visible');
+    clearTimeout(zoomHudTimer);
+    zoomHudTimer = setTimeout(() => {
+      if (zoomHudEl) zoomHudEl.classList.remove('visible');
+    }, 1100);
+  };
+
+  const commitZoomToHost = (pct) => {
+    const useNativeZoom = Boolean(window.__ANTIGRAVITY_NATIVE_ZOOM__ && window.chrome && window.chrome.webview);
+    if (useNativeZoom) {
+      document.documentElement.style.zoom = '';
+      postDesktopMsg(`window:zoom:${(pct / 100).toFixed(2)}`);
+    } else {
+      document.documentElement.style.zoom = pct === 100 ? '' : `${pct}%`;
+    }
+  };
+
+  const applyUiZoom = (nextPct, { showHud = true, forceCommit = false } = {}) => {
+    const raw = Math.round(Number(nextPct));
+    const clamped = clampZoomPct(raw);
+    const changed = clamped !== uiZoomPct;
+    const boundState =
+      raw > MAX_ZOOM_PCT || (clamped === MAX_ZOOM_PCT && raw >= MAX_ZOOM_PCT && !changed)
+        ? 'max'
+        : raw < MIN_ZOOM_PCT || (clamped === MIN_ZOOM_PCT && raw <= MIN_ZOOM_PCT && !changed)
+          ? 'min'
+          : clamped === 100 && raw === 100
+            ? 'reset'
+            : '';
+
+    uiZoomPct = clamped;
+    try {
+      localStorage.setItem(ZOOM_STORAGE_KEY, String(uiZoomPct));
+    } catch {
+      // ignore storage restrictions
+    }
+
+    if (changed || forceCommit) {
+      document.documentElement.classList.add('is-ui-zooming');
+      clearTimeout(zoomAnimTimer);
+      zoomAnimTimer = setTimeout(() => {
+        document.documentElement.classList.remove('is-ui-zooming');
+      }, 160);
+
+      if (!pendingZoomRaf) {
+        pendingZoomRaf = requestAnimationFrame(() => {
+          pendingZoomRaf = 0;
+          commitZoomToHost(uiZoomPct);
+        });
+      }
+    }
+
+    if (showHud) {
+      showZoomHud(uiZoomPct, boundState);
+    }
+  };
+
+  const stepUiZoom = (delta) => {
+    let target = uiZoomPct + delta;
+    // Snap cleanly to 100% if a large keyboard step crosses over 100%
+    if ((uiZoomPct < 100 && target > 100) || (uiZoomPct > 100 && target < 100)) {
+      target = 100;
+    }
+    applyUiZoom(target, { showHud: true });
   };
 
   const runCodexAction = async (act) => {
@@ -132,9 +236,9 @@ export function createDesktopChromeController({
         break;
       case 'open-palette': navigateToView('customize'); break;
       case 'open-css': actions.openCssStudio(); break;
-      case 'zoom-in': applyUiZoom(uiZoomPct + 10); break;
-      case 'zoom-out': applyUiZoom(uiZoomPct - 10); break;
-      case 'zoom-reset': applyUiZoom(100); break;
+      case 'zoom-in': stepUiZoom(10); break;
+      case 'zoom-out': stepUiZoom(-10); break;
+      case 'zoom-reset': applyUiZoom(100, { showHud: true, forceCommit: true }); break;
       case 'fullscreen':
         if (!postDesktopMsg('window:fullscreen')) {
           if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
@@ -265,15 +369,57 @@ export function createDesktopChromeController({
       else if (mod && e.shiftKey && key === 'g') { e.preventDefault(); runCodexAction('open-review'); }
       else if (mod && e.shiftKey && key === 'l') { e.preventDefault(); runCodexAction('toggle-theme'); }
       else if (mod && e.shiftKey && key === 'u') { e.preventDefault(); runCodexAction('view-usage'); }
-      else if (mod && (e.key === '=' || e.key === '+')) { e.preventDefault(); runCodexAction('zoom-in'); }
-      else if (mod && e.key === '-') { e.preventDefault(); runCodexAction('zoom-out'); }
-      else if (mod && e.key === '0') { e.preventDefault(); runCodexAction('zoom-reset'); }
+      else if (mod && (e.key === '=' || e.key === '+' || e.code === 'Equal' || e.code === 'NumpadAdd')) {
+        e.preventDefault();
+        runCodexAction('zoom-in');
+      }
+      else if (mod && (e.key === '-' || e.key === '_' || e.code === 'Minus' || e.code === 'NumpadSubtract')) {
+        e.preventDefault();
+        runCodexAction('zoom-out');
+      }
+      else if (mod && (e.key === '0' || e.code === 'Digit0' || e.code === 'Numpad0')) {
+        e.preventDefault();
+        runCodexAction('zoom-reset');
+      }
       else if (e.key === 'Escape') {
         actions.closeAllPopovers();
         closeCodexMenus();
         Object.values(modals).forEach((m) => m && m.classList.remove('open'));
       }
     });
+
+    // Unified bounded Ctrl+Wheel / Trackpad Pinch zoom with rate throttling
+    let lastWheelZoomAt = 0;
+    let wheelDeltaAccum = 0;
+    let wheelResetTimer = null;
+    window.addEventListener(
+      'wheel',
+      (e) => {
+        if (!(e.ctrlKey || e.metaKey)) return;
+        const lb = document.getElementById('image-lightbox-modal');
+        if (lb && lb.classList.contains('open')) return;
+        e.preventDefault();
+
+        const now = performance.now();
+        wheelDeltaAccum += e.deltaY;
+        clearTimeout(wheelResetTimer);
+        wheelResetTimer = setTimeout(() => {
+          wheelDeltaAccum = 0;
+        }, 180);
+
+        if (now - lastWheelZoomAt < 55) return;
+        if (Math.abs(wheelDeltaAccum) < 20) return;
+
+        const dir = wheelDeltaAccum < 0 ? 1 : -1;
+        wheelDeltaAccum = 0;
+        lastWheelZoomAt = now;
+        stepUiZoom(dir * 5);
+      },
+      { passive: false }
+    );
+
+    // Apply persisted zoom (or reset stale host WebView2 zoom) cleanly on startup
+    applyUiZoom(uiZoomPct, { showHud: false, forceCommit: true });
   };
 
   return { navigateToView, toggleSidebar, runCodexAction, bindEvents };

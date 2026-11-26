@@ -263,10 +263,55 @@ pre, code, kbd, samp {
 .desktop-window-shell {
   display: flex;
   flex-direction: column;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   background: var(--bg-sidebar);
+}
+
+html.is-ui-zooming,
+html.is-ui-zooming body,
+html.is-ui-zooming .claude-sidebar,
+html.is-ui-zooming .stage-card-shell {
+  transition: none !important;
+}
+
+.ui-zoom-hud {
+  position: fixed;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  z-index: 2600;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 999px;
+  background: var(--bg-composer);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-popover);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+.ui-zoom-hud.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.ui-zoom-hud-bound {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 450;
 }
 
 .codex-titlebar {
@@ -332,7 +377,10 @@ pre, code, kbd, samp {
 }
 
 .codex-tb-menu-btn {
-  height: 27px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
   padding: 0 9px;
   border: none;
   border-radius: 7px;
@@ -340,6 +388,7 @@ pre, code, kbd, samp {
   color: var(--text-secondary);
   font-size: 12.8px;
   font-weight: 450;
+  line-height: 1;
   cursor: pointer;
   transition: background 0.14s ease, color 0.14s ease;
 }
@@ -516,17 +565,23 @@ html.is-desktop-shell .codex-tb-win-controls {
   font-family: var(--font-display);
   font-size: 19px;
   font-weight: 600;
+  line-height: 1.1;
   letter-spacing: -0.02em;
   color: var(--text-primary);
 }
 
 .brand-sub {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 19px;
   font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 500;
+  line-height: 1;
   color: var(--accent);
   background: var(--accent-soft);
-  padding: 1px 6px;
+  padding: 0 7px;
   border-radius: 999px;
   letter-spacing: 0.01em;
 }
@@ -935,14 +990,17 @@ html.is-desktop-shell .codex-tb-win-controls {
 .topbar-pill-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
-  padding: 6px 10px;
+  height: 30px;
+  padding: 0 10px;
   border-radius: 9px;
   border: 1px solid var(--border-subtle);
   background: var(--bg-surface);
   color: var(--text-secondary);
   font-size: 12.5px;
   font-weight: 500;
+  line-height: 1;
   white-space: nowrap;
   flex-shrink: 0;
   cursor: pointer;
@@ -1072,6 +1130,10 @@ html.is-desktop-shell .codex-tb-win-controls {
   display: flex;
   justify-content: flex-end;
   width: 100%;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 72px;
+  contain: layout style;
+  scroll-margin-top: 24px;
   animation: fadeUp 0.2s ease;
 }
 
@@ -1105,6 +1167,10 @@ html.is-desktop-shell .codex-tb-win-controls {
   align-items: flex-start;
   width: 100%;
   gap: 12px;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 180px;
+  contain: layout style;
+  scroll-margin-top: 24px;
   animation: fadeUp 0.22s ease;
 }
 
@@ -1538,8 +1604,12 @@ html.is-desktop-shell .codex-tb-win-controls {
 }
 
 .code-lang-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-family: var(--font-mono);
   font-size: 11.5px;
+  line-height: 1;
   text-transform: lowercase;
   color: var(--text-muted);
 }
@@ -1553,13 +1623,17 @@ html.is-desktop-shell .codex-tb-win-controls {
 .code-action-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  padding: 3px 8px;
+  height: 24px;
+  padding: 0 8px;
   border-radius: 6px;
   border: none;
   background: transparent;
   color: var(--text-secondary);
   font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -1626,7 +1700,16 @@ html.is-desktop-shell .codex-tb-win-controls {
   margin-top: 2px;
   font-family: var(--font-sans);
   font-size: 12px;
+  line-height: 1;
   color: var(--text-muted);
+}
+
+.msg-footer-elapsed {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .msg-footer-actions {
@@ -1638,14 +1721,30 @@ html.is-desktop-shell .codex-tb-win-controls {
 .footer-mini-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
+  justify-content: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 8px;
   border-radius: 6px;
   border: none;
   background: transparent;
   color: var(--text-muted);
   font-size: 12px;
+  line-height: 1;
+  vertical-align: middle;
+  white-space: nowrap;
   cursor: pointer;
+}
+
+.footer-mini-btn > span {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.footer-mini-icon {
+  display: block;
+  flex-shrink: 0;
 }
 
 .footer-mini-btn:hover {
@@ -1740,9 +1839,13 @@ html.is-desktop-shell .codex-tb-win-controls {
 }
 
 .conv-source-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
   font-family: var(--font-mono);
   font-size: 9.5px;
-  line-height: 15px;
+  line-height: 1;
   padding: 0 4.5px;
   border-radius: 5px;
   border: 1px solid var(--border-subtle);
@@ -1891,12 +1994,16 @@ html.is-desktop-shell .codex-tb-win-controls {
 }
 
 .minimal-text-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   height: 30px;
   padding: 0 8px;
   border: none;
   background: transparent;
   border-radius: 8px;
   font-size: 13.5px;
+  line-height: 1;
   color: var(--text-muted);
   cursor: pointer;
   transition: background 0.14s ease, color 0.14s ease;
@@ -2027,6 +2134,7 @@ html.is-desktop-shell .codex-tb-win-controls {
 .claude-picker-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   height: 32px;
   padding: 0 10px;
@@ -2036,6 +2144,7 @@ html.is-desktop-shell .codex-tb-win-controls {
   color: var(--text-primary);
   font-size: 13.5px;
   font-weight: 500;
+  line-height: 1;
   white-space: nowrap;
   cursor: pointer;
   transition: background 0.14s ease, border-color 0.14s ease;
@@ -2049,6 +2158,7 @@ html.is-desktop-shell .codex-tb-win-controls {
 .claude-effort-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   height: 30px;
   padding: 0 9px;
@@ -2058,6 +2168,7 @@ html.is-desktop-shell .codex-tb-win-controls {
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 500;
+  line-height: 1;
   white-space: nowrap;
   cursor: pointer;
   transition: all 0.14s ease;
@@ -3162,13 +3273,19 @@ html.is-desktop-shell .codex-tb-win-controls {
 }
 
 .rp-mini-text-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 25px;
   border: none;
   background: transparent;
   color: var(--text-secondary);
   font-size: 11.5px;
   font-weight: 500;
-  padding: 2px 6px;
-  border-radius: 5px;
+  line-height: 1;
+  padding: 0 7px;
+  border-radius: 6px;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -6577,13 +6694,19 @@ input[type="time"].form-input {
   color: var(--text-muted);
 }
 .conv-search-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
   border: none;
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
   font-size: 11px;
-  padding: 0 2px;
+  padding: 0;
   line-height: 1;
+  flex-shrink: 0;
 }
 .conv-search-clear:hover {
   color: var(--text-primary);
@@ -6754,13 +6877,19 @@ input[type="time"].form-input {
   animation: fadeUp 0.12s ease;
 }
 .rp-sel-ask-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 26px;
   border: none;
   background: transparent;
   color: var(--text-primary);
   font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 500;
-  padding: 5px 10px;
+  line-height: 1;
+  padding: 0 10px;
   border-radius: 7px;
   cursor: pointer;
   white-space: nowrap;
@@ -7780,10 +7909,15 @@ html[data-theme="dark"] .composer-slash-menu {
   min-width: 0;
 }
 .conv-pinned-badge {
-  font-size: 10.5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: var(--accent);
   line-height: 1;
   flex-shrink: 0;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 .conv-item.is-pinned {
   background: color-mix(in srgb, var(--accent-soft) 36%, transparent);

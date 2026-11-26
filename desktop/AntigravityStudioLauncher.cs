@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Reflection;
@@ -228,6 +229,9 @@ namespace AntigravityStudioDesktop
         private readonly Color _initialBg;
         private readonly WebView2 _webView;
         private const int ResizeBorder = 5;
+        private const double MinZoomFactor = 0.85;
+        private const double MaxZoomFactor = 1.30;
+        private bool _clampingZoom = false;
 
         public FramelessStudioForm(string url, string profileDir, string iconPath, Color initialBg)
         {
@@ -364,11 +368,14 @@ namespace AntigravityStudioDesktop
                 core.Settings.AreDefaultContextMenusEnabled = true;
                 core.Settings.AreDevToolsEnabled = true;
                 core.Settings.IsStatusBarEnabled = false;
-                core.Settings.IsZoomControlEnabled = true;
+                core.Settings.IsZoomControlEnabled = false;
+
+                _webView.ZoomFactorChanged += OnZoomFactorChanged;
 
                 // Mark page as running inside native frameless desktop shell safely before/after DOM ready
                 await core.AddScriptToExecuteOnDocumentCreatedAsync(
                     "window.__ANTIGRAVITY_DESKTOP__ = true;" +
+                    "window.__ANTIGRAVITY_NATIVE_ZOOM__ = true;" +
                     "if (document.documentElement) { document.documentElement.classList.add('is-desktop-shell'); }" +
                     "else { document.addEventListener('DOMContentLoaded', function(){ document.documentElement.classList.add('is-desktop-shell'); }); }"
                 );
@@ -377,6 +384,7 @@ namespace AntigravityStudioDesktop
                 core.NewWindowRequested += OnNewWindowRequested;
                 core.NavigationCompleted += delegate
                 {
+                    try { ClampWebViewZoom(); } catch { }
                     try { core.ExecuteScriptAsync("document.documentElement.classList.add('is-desktop-shell');"); } catch { }
                     NotifyWindowStateToWeb();
                 };
@@ -410,6 +418,32 @@ namespace AntigravityStudioDesktop
             catch { }
         }
 
+        private double ClampZoomValue(double factor)
+        {
+            if (double.IsNaN(factor) || double.IsInfinity(factor)) return 1.0;
+            if (factor < MinZoomFactor) return MinZoomFactor;
+            if (factor > MaxZoomFactor) return MaxZoomFactor;
+            return Math.Round(factor, 2);
+        }
+
+        private void ClampWebViewZoom()
+        {
+            if (_webView == null || _clampingZoom) return;
+            double cur = _webView.ZoomFactor;
+            double clamped = ClampZoomValue(cur);
+            if (Math.Abs(cur - clamped) > 0.005)
+            {
+                _clampingZoom = true;
+                try { _webView.ZoomFactor = clamped; }
+                finally { _clampingZoom = false; }
+            }
+        }
+
+        private void OnZoomFactorChanged(object sender, EventArgs e)
+        {
+            ClampWebViewZoom();
+        }
+
         private void OnWebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
             string msg = "";
@@ -441,6 +475,19 @@ namespace AntigravityStudioDesktop
             else if (msg == "window:close")
             {
                 Close();
+            }
+            else if (msg.StartsWith("window:zoom:"))
+            {
+                string raw = msg.Substring("window:zoom:".Length).Trim();
+                double parsed;
+                if (double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out parsed))
+                {
+                    double clamped = ClampZoomValue(parsed);
+                    _clampingZoom = true;
+                    try { _webView.ZoomFactor = clamped; }
+                    catch { }
+                    finally { _clampingZoom = false; }
+                }
             }
             else if (msg.StartsWith("window:bg:"))
             {

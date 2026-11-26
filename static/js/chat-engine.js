@@ -28,6 +28,24 @@ const CLAUDE_STAR_SVG =
   '<circle cx="12" cy="12" r="1.45" fill="currentColor" stroke="none"></circle>' +
   '</svg>';
 
+const FOOTER_REGEN_SVG =
+  '<svg class="footer-mini-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"></path>' +
+  '<polyline points="21 3 21 8 16 8"></polyline>' +
+  '</svg>';
+
+const FOOTER_ROLLBACK_SVG =
+  '<svg class="footer-mini-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"></path>' +
+  '<polyline points="3 3 3 8 8 8"></polyline>' +
+  '</svg>';
+
+const CONV_CLOSE_SVG =
+  '<svg width="11.5" height="11.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" aria-hidden="true">' +
+  '<line x1="18" y1="6" x2="6" y2="18"></line>' +
+  '<line x1="6" y1="6" x2="18" y2="18"></line>' +
+  '</svg>';
+
 const THINKING_PHRASES = {
   'zh-CN': {
     thinking: ['正在思考…', '梳理思路中…', '分析上下文…', '推敲细节中…', '构思回复中…'],
@@ -265,9 +283,9 @@ export function createChatEngineController({ state, dom, actions }) {
       const hasIdx = typeof meta.index === 'number' && meta.index >= 0;
       const cpId = meta.checkpointId || '';
       actionsEl.innerHTML = `
-        ${hasIdx && cid ? '<button type="button" class="footer-mini-btn" data-user-act="edit" title="修改此条消息并重新生成后续回复">编辑重发</button>' : ''}
-        ${hasIdx && cid ? '<button type="button" class="footer-mini-btn" data-user-act="fork" title="保留原对话并从此处分叉出一条新对话">分叉</button>' : ''}
-        ${cpId ? '<button type="button" class="footer-mini-btn cp-btn" data-user-act="rollback" title="预览并将工作区代码回滚到本轮发消息前的快照">↺ 回滚到此步前</button>' : ''}
+        ${hasIdx && cid ? '<button type="button" class="footer-mini-btn" data-user-act="edit" title="修改此条消息并重新生成后续回复"><span>编辑重发</span></button>' : ''}
+        ${hasIdx && cid ? '<button type="button" class="footer-mini-btn" data-user-act="fork" title="保留原对话并从此处分叉出一条新对话"><span>分叉</span></button>' : ''}
+        ${cpId ? `<button type="button" class="footer-mini-btn cp-btn" data-user-act="rollback" title="预览并将工作区代码回滚到本轮发消息前的快照">${FOOTER_ROLLBACK_SVG}<span>回滚到此步前</span></button>` : ''}
       `;
     };
     renderActions();
@@ -493,6 +511,34 @@ export function createChatEngineController({ state, dom, actions }) {
           thinkingBox.classList.remove('open');
         }
       },
+      setTools(tools) {
+        if (!Array.isArray(tools) || !tools.length) return;
+        toolList.length = 0;
+        toolIndexById.clear();
+        for (const tool of tools) {
+          if (!tool) continue;
+          const tid = String(tool.id || `tool-${toolList.length}`);
+          if (toolIndexById.has(tid)) {
+            const idx = toolIndexById.get(tid);
+            const prev = toolList[idx] || {};
+            const merged = { ...prev, ...tool };
+            if (prev.args && Object.keys(prev.args).length && (!tool.args || !Object.keys(tool.args).length)) {
+              merged.args = prev.args;
+            }
+            if (prev.summary && !tool.summary) merged.summary = prev.summary;
+            if (prev.output && !tool.output) merged.output = prev.output;
+            toolList[idx] = merged;
+          } else {
+            toolIndexById.set(tid, toolList.length);
+            toolList.push({ ...tool, id: tid });
+          }
+        }
+        renderToolActivityGroup(toolsStack, toolList, {
+          activeCwd: state.activeCwd || '',
+          openLocalFileSmart: actions.openLocalFileSmart,
+          openFileInRightPane: actions.openFileInRightPane,
+        });
+      },
       upsertTool(tool) {
         if (!tool) return;
         const tid = String(tool.id || `tool-${toolList.length}`);
@@ -563,19 +609,20 @@ export function createChatEngineController({ state, dom, actions }) {
 
         footerEl.innerHTML = `
           <div class="msg-footer-actions">
-            <button type="button" class="footer-mini-btn" data-copy-turn="1">复制全文</button>
-            ${canRegen ? '<button type="button" class="footer-mini-btn" data-regen-turn="1" title="使用原问题重新生成本条回复">↻ 重新生成</button>' : ''}
-            ${canFork ? '<button type="button" class="footer-mini-btn" data-fork-turn="1" title="从这条回复分叉出一条新对话">从此处分叉</button>' : ''}
-            ${cpId ? '<button type="button" class="footer-mini-btn cp-btn" data-cp-rollback="1" title="将工作区代码回滚到本轮修改之前">↺ 回滚代码</button>' : ''}
+            <button type="button" class="footer-mini-btn" data-copy-turn="1"><span>复制全文</span></button>
+            ${canRegen ? `<button type="button" class="footer-mini-btn" data-regen-turn="1" title="使用原问题重新生成本条回复">${FOOTER_REGEN_SVG}<span>重新生成</span></button>` : ''}
+            ${canFork ? '<button type="button" class="footer-mini-btn" data-fork-turn="1" title="从这条回复分叉出一条新对话"><span>从此处分叉</span></button>' : ''}
+            ${cpId ? `<button type="button" class="footer-mini-btn cp-btn" data-cp-rollback="1" title="将工作区代码回滚到本轮修改之前">${FOOTER_ROLLBACK_SVG}<span>回滚代码</span></button>` : ''}
           </div>
-          <span>${escapeHtml(badge)}</span>
+          <span class="msg-footer-elapsed">${escapeHtml(badge)}</span>
         `;
         const copyBtn = footerEl.querySelector('[data-copy-turn]');
         if (copyBtn) {
           copyBtn.addEventListener('click', async () => {
             await navigator.clipboard.writeText(textBuf);
-            copyBtn.textContent = '已复制 ✓';
-            setTimeout(() => (copyBtn.textContent = '复制全文'), 1500);
+            const lbl = copyBtn.querySelector('span') || copyBtn;
+            lbl.textContent = '已复制 ✓';
+            setTimeout(() => (lbl.textContent = '复制全文'), 1500);
           });
         }
         const regenBtn = footerEl.querySelector('[data-regen-turn]');
@@ -598,7 +645,7 @@ export function createChatEngineController({ state, dom, actions }) {
         ctrl.showDispatchedSkills(initialData.dispatched_skills);
       }
       if (initialData.thinking) ctrl.appendThinking(initialData.thinking, false);
-      if (Array.isArray(initialData.tools)) initialData.tools.forEach((t) => ctrl.upsertTool(t));
+      if (Array.isArray(initialData.tools) && initialData.tools.length) ctrl.setTools(initialData.tools);
       if (initialData.content) textBuf = initialData.content;
       if (Array.isArray(initialData.errors) && initialData.errors.length) {
         ctrl.showError(initialData.errors.join('\n'));
@@ -645,7 +692,7 @@ export function createChatEngineController({ state, dom, actions }) {
       if (state.activeConv && state.activeConv.id && !state.activeStreams.has(state.activeConv.id)) {
         const curId = state.activeConv.id;
         const stillExists = state.conversations.some((c) => c.id === curId);
-        if (stillExists && (data.updated > 0)) {
+        if (stillExists && (data.updated > 0 || state.activeConv.agy_conversation_id)) {
           await selectConversation(curId);
         }
       }
@@ -790,7 +837,7 @@ export function createChatEngineController({ state, dom, actions }) {
       row.innerHTML = `
         <div class="conv-item-main">
           <div class="conv-item-top">
-            ${isRunning ? '<span class="conv-status-dot running" title="后台运行中"></span>' : isUnreadDone ? '<span class="conv-status-dot done" title="新回复已完成"></span>' : isPinned ? '<span class="conv-pinned-badge" title="已置顶">📌</span>' : ''}
+            ${isRunning ? '<span class="conv-status-dot running" title="后台运行中"></span>' : isUnreadDone ? '<span class="conv-status-dot done" title="新回复已完成"></span>' : isPinned ? `<span class="conv-pinned-badge" title="已置顶">${pinSvg}</span>` : ''}
             <span class="conv-item-title">${highlightMatchText(c.title || '新聊天', q)}</span>
             ${srcTag ? `<span class="conv-source-tag" data-i18n-skip="1">${srcTag}</span>` : ''}
           </div>
@@ -798,7 +845,7 @@ export function createChatEngineController({ state, dom, actions }) {
         </div>
         <div class="conv-item-actions">
           <button type="button" class="conv-pin-btn ${isPinned ? 'active' : ''}" title="${isPinned ? '取消置顶' : '置顶对话'}">${pinSvg}</button>
-          <button type="button" class="conv-delete-btn" title="删除对话">✕</button>
+          <button type="button" class="conv-delete-btn" title="删除对话">${CONV_CLOSE_SVG}</button>
         </div>
       `;
       row.addEventListener('click', (e) => {
@@ -890,9 +937,10 @@ export function createChatEngineController({ state, dom, actions }) {
       stageEl.classList.add('is-empty');
     } else {
       stageEl.classList.remove('is-empty');
+      const frag = document.createDocumentFragment();
       msgs.forEach((m, idx) => {
         if (m.role === 'user') {
-          messagesEl.appendChild(
+          frag.appendChild(
             createUserMessageEl(m.content, m.attachments || [], {
               convId,
               index: idx,
@@ -906,12 +954,13 @@ export function createChatEngineController({ state, dom, actions }) {
             index: idx,
             checkpointId: m.checkpoint_id || '',
           });
-          messagesEl.appendChild(turn.el);
+          frag.appendChild(turn.el);
         }
       });
       if (liveStream && liveStream.turn && liveStream.turn.el) {
-        messagesEl.appendChild(liveStream.turn.el);
+        frag.appendChild(liveStream.turn.el);
       }
+      messagesEl.appendChild(frag);
       if (focusMsgIndex < 0) {
         scrollArea.scrollTop = scrollArea.scrollHeight;
       }
@@ -1317,7 +1366,7 @@ export function createChatEngineController({ state, dom, actions }) {
       convSearchInput.addEventListener('input', () => {
         state.convSearchQuery = convSearchInput.value || '';
         if (btnConvSearchClear) {
-          btnConvSearchClear.style.display = state.convSearchQuery ? 'inline-block' : 'none';
+          btnConvSearchClear.style.display = state.convSearchQuery ? 'inline-flex' : 'none';
         }
         clearTimeout(convSearchTimer);
         if (!state.convSearchQuery.trim()) {

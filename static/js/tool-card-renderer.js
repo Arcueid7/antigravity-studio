@@ -292,7 +292,7 @@ function shortCmdPreview(cmd, maxLen = 46) {
   return clean.length > maxLen ? clean.slice(0, maxLen) + '…' : clean;
 }
 
-function describeToolStep(tool, activeCwd) {
+function describeToolStep(tool, activeCwd, { includeDiff = true } = {}) {
   const argsObj = parseArgsObject(tool.args);
   const kind = classifyTool(tool.name, argsObj);
   const filePaths = extractFilePaths(argsObj);
@@ -302,7 +302,7 @@ function describeToolStep(tool, activeCwd) {
       : typeof tool.output === 'string'
         ? tool.output
         : JSON.stringify(tool.output, null, 2);
-  const diff = extractDiffSpec(argsObj, outputStr);
+  const diff = includeDiff ? extractDiffSpec(argsObj, outputStr) : null;
   const statusUpper = String(tool.status || '').toUpperCase();
   const isDone = ['DONE', 'COMPLETED', 'SUCCESS'].includes(statusUpper);
   const isErr = ['ERROR', 'FAILED'].includes(statusUpper);
@@ -601,16 +601,21 @@ export function renderToolActivityGroup(container, toolsList, opts = {}) {
   }
 
   container.style.display = 'block';
-  const entries = list.map((t) => describeToolStep(t, activeCwd));
-  const headline = buildActivityHeadline(entries);
 
   // Preserve group open state & individual expanded step IDs across incremental stream updates
   const prevGroup = container.querySelector('.tool-activity-group');
   const prevOpen = prevGroup ? prevGroup.classList.contains('open') : false;
   const openStepIds = new Set();
-  container.querySelectorAll('.tool-step-item.open[data-step-id]').forEach((el) => {
-    openStepIds.add(el.dataset.stepId);
-  });
+  if (prevOpen) {
+    container.querySelectorAll('.tool-step-item.open[data-step-id]').forEach((el) => {
+      openStepIds.add(el.dataset.stepId);
+    });
+  }
+
+  // Only compute heavy LCS line diffs eagerly when small or already expanded
+  const computeDiffEagerly = prevOpen || list.length <= 12;
+  const entries = list.map((t) => describeToolStep(t, activeCwd, { includeDiff: computeDiffEagerly }));
+  const headline = buildActivityHeadline(entries);
 
   // Collect distinct edited/written files for crisp inline quick-jump pills on the summary strip
   const editedPills = [];
@@ -624,49 +629,6 @@ export function renderToolActivityGroup(container, toolsList, opts = {}) {
       }
     }
   }
-
-  const folded = foldConsecutiveBareSteps(entries);
-  const stepsHtml = folded
-    .map(({ entry, count }) => {
-      const stepId = String(entry.tool.id || '');
-      const isExpanded = openStepIds.has(stepId);
-      const iconHtml = entry.isErr
-        ? STEP_ICONS.error
-        : !entry.isDone
-          ? '<span class="tool-act-dot is-running"></span>'
-          : STEP_ICONS[entry.kind] || STEP_ICONS.generic;
-
-      const diffStatHtml = entry.diff
-        ? `<span class="tool-diff-stat-pill"><span class="stat-add">+${entry.diff.added}</span><span class="stat-del">-${entry.diff.removed}</span></span>`
-        : '';
-      const countHtml = count > 1 ? `<span class="tool-step-count">×${count}</span>` : '';
-
-      if (!entry.hasDetail) {
-        return `
-          <div class="tool-step-item is-static ${entry.isErr ? 'is-err' : ''}" data-step-id="${escapeHtml(stepId)}">
-            <div class="tool-step-row">
-              <span class="tool-step-icon">${iconHtml}</span>
-              <span class="tool-step-label">${escapeHtml(entry.label)}</span>
-              ${countHtml}
-            </div>
-          </div>
-        `;
-      }
-
-      const detailHtml = buildStepDetailHtml(entry, activeCwd);
-      return `
-        <div class="tool-step-item is-expandable ${isExpanded ? 'open' : ''} ${entry.isErr ? 'is-err' : ''}" data-step-id="${escapeHtml(stepId)}">
-          <button type="button" class="tool-step-row tool-step-toggle">
-            <span class="tool-step-icon">${iconHtml}</span>
-            <span class="tool-step-label">${escapeHtml(entry.label)}</span>
-            ${diffStatHtml}
-            <span class="tool-step-chevron">${STEP_ICONS.chevron}</span>
-          </button>
-          <div class="tool-step-detail">${detailHtml}</div>
-        </div>
-      `;
-    })
-    .join('');
 
   const statusIndicator = !headline.allDone
     ? '<span class="tool-act-dot is-running"></span>'
@@ -698,24 +660,106 @@ export function renderToolActivityGroup(container, toolsList, opts = {}) {
         </button>
         ${inlineEditsHtml}
       </div>
-      <div class="tool-activity-list">${stepsHtml}</div>
+      <div class="tool-activity-list" data-steps-rendered="0"></div>
     </div>
   `;
 
   const groupEl = container.querySelector('.tool-activity-group');
+  const barEl = container.querySelector('.tool-activity-bar');
   const headerBtn = container.querySelector('.tool-activity-header');
-  if (headerBtn && groupEl) {
-    headerBtn.addEventListener('click', () => {
-      groupEl.classList.toggle('open');
-    });
+  const listEl = container.querySelector('.tool-activity-list');
+
+  if (barEl) {
+    bindFilePills(barEl, activeCwd, openLocalFileSmart, openFileInRightPane);
   }
 
-  container.querySelectorAll('.tool-step-toggle').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const item = btn.closest('.tool-step-item');
-      if (item) item.classList.toggle('open');
-    });
-  });
+  // Lazily build step rows when the group is expanded, and lazily build each step's detail diff/JSON when that step is expanded
+  const populateStepsList = () => {
+    if (!listEl || listEl.dataset.stepsRendered === '1') return;
+    listEl.dataset.stepsRendered = '1';
 
-  bindFilePills(container, activeCwd, openLocalFileSmart, openFileInRightPane);
+    const detailedEntries = computeDiffEagerly
+      ? entries
+      : list.map((t) => describeToolStep(t, activeCwd, { includeDiff: true }));
+    const folded = foldConsecutiveBareSteps(detailedEntries);
+
+    listEl.innerHTML = folded
+      .map(({ entry, count }, foldedIdx) => {
+        const stepId = String(entry.tool.id || '');
+        const isExpanded = openStepIds.has(stepId);
+        const iconHtml = entry.isErr
+          ? STEP_ICONS.error
+          : !entry.isDone
+            ? '<span class="tool-act-dot is-running"></span>'
+            : STEP_ICONS[entry.kind] || STEP_ICONS.generic;
+
+        const diffStatHtml = entry.diff
+          ? `<span class="tool-diff-stat-pill"><span class="stat-add">+${entry.diff.added}</span><span class="stat-del">-${entry.diff.removed}</span></span>`
+          : '';
+        const countHtml = count > 1 ? `<span class="tool-step-count">×${count}</span>` : '';
+
+        if (!entry.hasDetail) {
+          return `
+            <div class="tool-step-item is-static ${entry.isErr ? 'is-err' : ''}" data-step-id="${escapeHtml(stepId)}">
+              <div class="tool-step-row">
+                <span class="tool-step-icon">${iconHtml}</span>
+                <span class="tool-step-label">${escapeHtml(entry.label)}</span>
+                ${countHtml}
+              </div>
+            </div>
+          `;
+        }
+
+        const detailHtml = isExpanded ? buildStepDetailHtml(entry, activeCwd) : '';
+        return `
+          <div class="tool-step-item is-expandable ${isExpanded ? 'open' : ''} ${entry.isErr ? 'is-err' : ''}" data-step-id="${escapeHtml(stepId)}" data-folded-idx="${foldedIdx}">
+            <button type="button" class="tool-step-row tool-step-toggle">
+              <span class="tool-step-icon">${iconHtml}</span>
+              <span class="tool-step-label">${escapeHtml(entry.label)}</span>
+              ${diffStatHtml}
+              <span class="tool-step-chevron">${STEP_ICONS.chevron}</span>
+            </button>
+            <div class="tool-step-detail" data-detail-rendered="${isExpanded ? '1' : '0'}">${detailHtml}</div>
+          </div>
+        `;
+      })
+      .join('');
+
+    listEl.querySelectorAll('.tool-step-toggle').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const item = btn.closest('.tool-step-item');
+        if (!item) return;
+        const willOpen = item.classList.toggle('open');
+        if (willOpen) {
+          const detailEl = item.querySelector('.tool-step-detail');
+          if (detailEl && detailEl.dataset.detailRendered !== '1') {
+            const fIdx = Number(item.dataset.foldedIdx);
+            const target = !Number.isNaN(fIdx) && folded[fIdx] ? folded[fIdx].entry : null;
+            if (target) {
+              detailEl.innerHTML = buildStepDetailHtml(target, activeCwd);
+              detailEl.dataset.detailRendered = '1';
+              bindFilePills(detailEl, activeCwd, openLocalFileSmart, openFileInRightPane);
+            }
+          }
+        }
+      });
+    });
+
+    if (openStepIds.size > 0) {
+      bindFilePills(listEl, activeCwd, openLocalFileSmart, openFileInRightPane);
+    }
+  };
+
+  if (prevOpen) {
+    populateStepsList();
+  }
+
+  if (headerBtn && groupEl) {
+    headerBtn.addEventListener('click', () => {
+      const willOpen = groupEl.classList.toggle('open');
+      if (willOpen) {
+        populateStepsList();
+      }
+    });
+  }
 }

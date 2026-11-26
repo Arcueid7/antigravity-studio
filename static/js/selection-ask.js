@@ -7,9 +7,11 @@ export function createSelectionAskController({ containers, getSelectionContext, 
   bar.id = 'rp-selection-ask-bar';
   bar.className = 'rp-selection-ask-bar';
   bar.style.display = 'none';
+  const sparkSvg =
+    '<svg class="ui-line-icon" width="11.5" height="11.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2L12 3z"/></svg>';
   bar.innerHTML = `
-    <button type="button" class="rp-sel-ask-btn primary" data-sel-act="ask">✦ 问 agy</button>
-    <button type="button" class="rp-sel-ask-btn" data-sel-act="quote">引用片段</button>
+    <button type="button" class="rp-sel-ask-btn primary" data-sel-act="ask">${sparkSvg}<span>问 agy</span></button>
+    <button type="button" class="rp-sel-ask-btn" data-sel-act="quote"><span>引用片段</span></button>
   `;
   document.body.appendChild(bar);
 

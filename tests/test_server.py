@@ -852,6 +852,53 @@ class TestAgyConversationSync(unittest.TestCase):
                 for mod, attr, orig in reversed(saved):
                     setattr(mod, attr, orig)
 
+    def test_sync_clears_recovered_retry_errors_and_updates_in_progress_turn(self) -> None:
+        import backend.agy_sync as agy_sync_mod
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tr = Path(tmp) / "transcript.jsonl"
+            # Turn 1: transient attempt-1 network reset recovered by next PLANNER_RESPONSE
+            # Turn 2: unrecovered terminal error with no subsequent PLANNER_RESPONSE
+            tr.write_text(
+                "\n".join(
+                    [
+                        json.dumps({"step_index": 0, "source": "USER_EXPLICIT", "type": "USER_INPUT", "content": "<USER_REQUEST>第一轮</USER_REQUEST>"}, ensure_ascii=False),
+                        json.dumps({"step_index": 1, "source": "MODEL", "type": "PLANNER_RESPONSE", "thinking": "开始排查"}, ensure_ascii=False),
+                        json.dumps({"step_index": 2, "source": "SYSTEM", "type": "ERROR_MESSAGE", "error": 'API error (attempt 1): request failed: wsasend: connection reset'}, ensure_ascii=False),
+                        json.dumps({"step_index": 3, "source": "MODEL", "type": "PLANNER_RESPONSE", "content": "重试后已成功完成。"}, ensure_ascii=False),
+                        json.dumps({"step_index": 4, "source": "USER_EXPLICIT", "type": "USER_INPUT", "content": "<USER_REQUEST>第二轮</USER_REQUEST>"}, ensure_ascii=False),
+                        json.dumps({"step_index": 5, "source": "SYSTEM", "type": "ERROR_MESSAGE", "error": "Quota exhausted permanently"}, ensure_ascii=False),
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            parsed = agy_sync_mod.parse_agy_transcript(tr)
+            msgs = parsed["messages"]
+            self.assertEqual(len(msgs), 4)
+            # Recovered retry error must be cleared
+            self.assertEqual(msgs[1]["content"], "重试后已成功完成。")
+            self.assertEqual(msgs[1]["errors"], [])
+            # Unrecovered terminal error must remain visible
+            self.assertEqual(msgs[3]["errors"], ["Quota exhausted permanently"])
+
+            # In-progress turn update: same message count, more content + stale retry error cleaned
+            stale_existing = [
+                msgs[0],
+                {
+                    "id": "a-1",
+                    "role": "assistant",
+                    "content": "进行中…",
+                    "thinking": "开始排查",
+                    "tools": [],
+                    "errors": ["API error (attempt 1): request failed: wsasend: connection reset"],
+                },
+            ]
+            merged, changed = agy_sync_mod._merge_messages(stale_existing, msgs[:2])
+            self.assertTrue(changed)
+            self.assertEqual(merged[1]["content"], "重试后已成功完成。")
+            self.assertEqual(merged[1]["errors"], [])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

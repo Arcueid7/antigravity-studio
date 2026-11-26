@@ -204,10 +204,12 @@ export function renderMarkdownDocument(mdText, isStreaming, { nextBlockId, store
     if (lang.toLowerCase() === 'mermaid') {
       const highlighted = highlightCode(escapeHtml(cleanCode), 'text');
       const renderFlag = isClosed && !isStreaming ? '0' : 'pending';
+      const sparkMiniSvg =
+        '<svg class="ui-line-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2L12 3z"/></svg>';
       const mermaidCard = `
         <div class="mermaid-card" data-block="${blockId}" data-mermaid-rendered="${renderFlag}">
           <div class="code-block-topbar">
-            <span class="code-lang-label">✦ Mermaid 图表</span>
+            <span class="code-lang-label">${sparkMiniSvg}<span>Mermaid 图表</span></span>
             <div class="code-actions">
               <button class="code-action-btn" data-action="toggle-mermaid-src" data-block="${blockId}">源码</button>
               <button class="code-action-btn" data-action="artifact" data-block="${blockId}">右侧查看</button>
@@ -230,7 +232,9 @@ export function renderMarkdownDocument(mdText, isStreaming, { nextBlockId, store
     }
 
     const highlighted = highlightCode(escapeHtml(cleanCode), lang);
-    const previewLabel = isRenderableArtifact ? '✦ 预览 Artifact' : '右侧查看';
+    const sparkMiniSvg =
+      '<svg class="ui-line-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2L12 3z"/></svg>';
+    const previewLabel = isRenderableArtifact ? `${sparkMiniSvg}<span>预览 Artifact</span>` : '<span>右侧查看</span>';
 
     const cardHtml = `
       <div class="claude-code-block">

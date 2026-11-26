@@ -33,12 +33,14 @@ AGY_SYNC_ROOTS: Optional[List[Tuple[str, Path]]] = None
 SYNC_LOCK = threading.Lock()
 _LAST_AUTO_SYNC_TS = 0.0
 _AUTO_SYNC_INTERVAL_SEC = 4.0
+AGY_SYNC_PARSER_VERSION = 3
 
 _USER_REQ_RE = re.compile(r"<USER_REQUEST>\s*([\s\S]*?)\s*</USER_REQUEST>", re.IGNORECASE)
 _META_BLOCK_RE = re.compile(
     r"<(?:ADDITIONAL_METADATA|USER_SETTINGS_CHANGE|CONTEXT_SUMMARY|SYSTEM_MESSAGE)>[\s\S]*?</(?:ADDITIONAL_METADATA|USER_SETTINGS_CHANGE|CONTEXT_SUMMARY|SYSTEM_MESSAGE)>",
     re.IGNORECASE,
 )
+_TRANSIENT_RETRY_ERR_RE = re.compile(r"^API error \(attempt \d+\):", re.IGNORECASE)
 
 
 def _sync_state_file() -> Path:
@@ -283,6 +285,13 @@ def parse_agy_transcript(tr_path: Path) -> Dict[str, Any]:
                     if ts:
                         current_assistant["timestamp"] = ts
 
+                    # A subsequent successful MODEL response means prior transient retry errors recovered cleanly
+                    if current_assistant["errors"]:
+                        current_assistant["errors"] = [
+                            e for e in current_assistant["errors"]
+                            if not _TRANSIENT_RETRY_ERR_RE.match(str(e or "").strip())
+                        ]
+
                     thought = str(obj.get("thinking") or "").strip()
                     if thought:
                         if current_assistant["thinking"]:
@@ -314,7 +323,17 @@ def parse_agy_transcript(tr_path: Path) -> Dict[str, Any]:
                             current_assistant["content"] = txt
                 elif stype == "ERROR_MESSAGE":
                     err_txt = str(obj.get("content") or obj.get("error") or "").strip()
-                    if err_txt and current_assistant is not None:
+                    if err_txt:
+                        if current_assistant is None:
+                            current_assistant = {
+                                "id": f"a-{obj.get('step_index', len(messages))}",
+                                "role": "assistant",
+                                "content": "",
+                                "thinking": "",
+                                "tools": [],
+                                "errors": [],
+                                "timestamp": ts or time.time(),
+                            }
                         current_assistant["errors"].append(err_txt[:500])
     except OSError:
         return {"messages": [], "model": "default", "first_user_text": "", "created_at": 0.0, "updated_at": 0.0}
@@ -327,6 +346,16 @@ def parse_agy_transcript(tr_path: Path) -> Dict[str, Any]:
         "created_at": first_ts,
         "updated_at": last_ts,
     }
+
+
+def _resolve_transcript_in_brain_dir(brain_conv_dir: Path) -> Optional[Path]:
+    """Prefer untruncated transcript_full.jsonl over compact transcript.jsonl when present."""
+    logs_dir = brain_conv_dir / ".system_generated" / "logs"
+    for fname in ("transcript_full.jsonl", "transcript.jsonl"):
+        cand = logs_dir / fname
+        if _safe_is_file(cand):
+            return cand
+    return None
 
 
 def _discover_external_records() -> Dict[str, Dict[str, Any]]:
@@ -346,8 +375,8 @@ def _discover_external_records() -> Dict[str, Dict[str, Any]]:
             if pair not in checked:
                 checked.append(pair)
         for kind, rpath in checked:
-            cand = rpath / "brain" / cid / ".system_generated" / "logs" / "transcript.jsonl"
-            if _safe_is_file(cand):
+            cand = _resolve_transcript_in_brain_dir(rpath / "brain" / cid)
+            if cand is not None:
                 return cand, kind
         return None, ("app" if preferred_dir_name == "antigravity" else "cli")
 
@@ -454,20 +483,23 @@ def _discover_external_records() -> Dict[str, Dict[str, Any]]:
 
     for src_kind, root_path in roots:
         brain_dir = root_path / "brain"
-        if not brain_dir.is_dir():
-            continue
         try:
+            if not brain_dir.is_dir():
+                continue
             entries = list(brain_dir.iterdir())
         except OSError:
             continue
         for cdir in entries:
-            if not cdir.is_dir():
+            try:
+                if not cdir.is_dir():
+                    continue
+            except OSError:
                 continue
             cid = cdir.name
             if cid in records or cid in subagent_ids:
                 continue
-            tr_path = cdir / ".system_generated" / "logs" / "transcript.jsonl"
-            if not _safe_is_file(tr_path):
+            tr_path = _resolve_transcript_in_brain_dir(cdir)
+            if tr_path is None:
                 continue
             try:
                 st = tr_path.stat()
@@ -488,18 +520,72 @@ def _discover_external_records() -> Dict[str, Dict[str, Any]]:
     return records
 
 
-def _merge_messages(existing_msgs: List[Dict[str, Any]], parsed_msgs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def _merge_messages(
+    existing_msgs: List[Dict[str, Any]], parsed_msgs: List[Dict[str, Any]]
+) -> Tuple[List[Dict[str, Any]], bool]:
     """Append/update turns from transcript while keeping Studio-rich metadata on prior turns."""
     if not existing_msgs:
-        return parsed_msgs
-    if len(parsed_msgs) <= len(existing_msgs):
-        return existing_msgs
+        return list(parsed_msgs), bool(parsed_msgs)
 
     merged = list(existing_msgs)
-    # Refresh last assistant turn if it was incomplete or append all newer turns
-    for idx in range(len(existing_msgs), len(parsed_msgs)):
-        merged.append(parsed_msgs[idx])
-    return merged
+    changed = False
+
+    # Refresh existing synced assistant messages when an in-progress turn continues
+    # or when parser upgrades clean recovered transient retry errors
+    overlap = min(len(merged), len(parsed_msgs))
+    for idx in range(overlap):
+        old_m = merged[idx]
+        new_m = parsed_msgs[idx]
+        if (
+            not isinstance(old_m, dict)
+            or not isinstance(new_m, dict)
+            or old_m.get("role") != "assistant"
+            or new_m.get("role") != "assistant"
+        ):
+            continue
+
+        updated_m = dict(old_m)
+        m_changed = False
+
+        old_content = str(old_m.get("content") or "")
+        new_content = str(new_m.get("content") or "")
+        if len(new_content) > len(old_content):
+            updated_m["content"] = new_content
+            m_changed = True
+
+        old_thinking = str(old_m.get("thinking") or "")
+        new_thinking = str(new_m.get("thinking") or "")
+        if len(new_thinking) > len(old_thinking):
+            updated_m["thinking"] = new_thinking
+            m_changed = True
+
+        old_tools = old_m.get("tools") if isinstance(old_m.get("tools"), list) else []
+        new_tools = new_m.get("tools") if isinstance(new_m.get("tools"), list) else []
+        if len(new_tools) > len(old_tools):
+            updated_m["tools"] = new_tools
+            m_changed = True
+
+        old_errs = old_m.get("errors") if isinstance(old_m.get("errors"), list) else []
+        new_errs = new_m.get("errors") if isinstance(new_m.get("errors"), list) else []
+        if old_errs != new_errs and (
+            any(_TRANSIENT_RETRY_ERR_RE.match(str(e or "").strip()) for e in old_errs)
+            or idx == overlap - 1
+        ):
+            updated_m["errors"] = new_errs
+            m_changed = True
+
+        if m_changed:
+            if new_m.get("timestamp"):
+                updated_m["timestamp"] = new_m["timestamp"]
+            merged[idx] = updated_m
+            changed = True
+
+    if len(parsed_msgs) > len(existing_msgs):
+        for idx in range(len(existing_msgs), len(parsed_msgs)):
+            merged.append(parsed_msgs[idx])
+        changed = True
+
+    return merged, changed
 
 
 def _make_clean_title(db_title: str, first_user_text: str, preview: str = "") -> str:
@@ -562,7 +648,8 @@ def sync_agy_conversations(force: bool = False) -> Dict[str, Any]:
             if existing is not None:
                 prev_mtime = float(existing.get("agy_sync_mtime") or 0.0)
                 prev_size = int(existing.get("agy_sync_size") or 0)
-                if not force and prev_mtime == tr_mtime and prev_size == tr_size:
+                prev_pver = int(existing.get("agy_sync_parser_ver") or 0)
+                if not force and prev_mtime == tr_mtime and prev_size == tr_size and prev_pver >= AGY_SYNC_PARSER_VERSION:
                     skipped += 1
                     continue
 
@@ -573,9 +660,9 @@ def sync_agy_conversations(force: bool = False) -> Dict[str, Any]:
                     continue
 
                 old_msgs = existing.get("messages") or []
-                new_msgs = _merge_messages(old_msgs, p_msgs)
+                new_msgs, msgs_changed = _merge_messages(old_msgs, p_msgs)
                 changed = False
-                if len(new_msgs) > len(old_msgs):
+                if msgs_changed:
                     existing["messages"] = new_msgs
                     changed = True
                 if not existing.get("agy_source"):
@@ -592,9 +679,15 @@ def sync_agy_conversations(force: bool = False) -> Dict[str, Any]:
                     if better_title and better_title != cur_title:
                         existing["title"] = better_title
                         changed = True
-                if changed or existing.get("agy_sync_mtime") != tr_mtime or existing.get("agy_sync_size") != tr_size:
+                if (
+                    changed
+                    or existing.get("agy_sync_mtime") != tr_mtime
+                    or existing.get("agy_sync_size") != tr_size
+                    or prev_pver < AGY_SYNC_PARSER_VERSION
+                ):
                     existing["agy_sync_mtime"] = tr_mtime
                     existing["agy_sync_size"] = tr_size
+                    existing["agy_sync_parser_ver"] = AGY_SYNC_PARSER_VERSION
                     if changed and rec["updated_at"] > float(existing.get("updated_at") or 0):
                         existing["updated_at"] = rec["updated_at"]
                     save_conversation(existing, touch_updated=False)
@@ -632,6 +725,7 @@ def sync_agy_conversations(force: bool = False) -> Dict[str, Any]:
                 "agy_source": rec["source"],
                 "agy_sync_mtime": tr_mtime,
                 "agy_sync_size": tr_size,
+                "agy_sync_parser_ver": AGY_SYNC_PARSER_VERSION,
                 "engine": "agy",
                 "cwd": cwd,
                 "model": parsed["model"] or "default",
@@ -665,8 +759,8 @@ def refresh_single_agy_conversation(conv: Dict[str, Any]) -> Dict[str, Any]:
     # Prefer matching source root first
     ordered = sorted(roots, key=lambda pair: 0 if pair[0] == src_kind else 1)
     for kind, rpath in ordered:
-        cand = rpath / "brain" / cid / ".system_generated" / "logs" / "transcript.jsonl"
-        if _safe_is_file(cand):
+        cand = _resolve_transcript_in_brain_dir(rpath / "brain" / cid)
+        if cand is not None:
             tr_path = cand
             if not src_kind:
                 src_kind = kind
@@ -679,7 +773,11 @@ def refresh_single_agy_conversation(conv: Dict[str, Any]) -> Dict[str, Any]:
     except OSError:
         return conv
 
-    if float(conv.get("agy_sync_mtime") or 0.0) == st.st_mtime and int(conv.get("agy_sync_size") or 0) == st.st_size:
+    if (
+        float(conv.get("agy_sync_mtime") or 0.0) == st.st_mtime
+        and int(conv.get("agy_sync_size") or 0) == st.st_size
+        and int(conv.get("agy_sync_parser_ver") or 0) >= AGY_SYNC_PARSER_VERSION
+    ):
         return conv
 
     parsed = parse_agy_transcript(tr_path)
@@ -688,12 +786,13 @@ def refresh_single_agy_conversation(conv: Dict[str, Any]) -> Dict[str, Any]:
         return conv
 
     old_msgs = conv.get("messages") or []
-    new_msgs = _merge_messages(old_msgs, p_msgs)
+    new_msgs, msgs_changed = _merge_messages(old_msgs, p_msgs)
     conv["agy_sync_mtime"] = st.st_mtime
     conv["agy_sync_size"] = st.st_size
+    conv["agy_sync_parser_ver"] = AGY_SYNC_PARSER_VERSION
     if src_kind and not conv.get("agy_source"):
         conv["agy_source"] = src_kind
-    if len(new_msgs) > len(old_msgs):
+    if msgs_changed:
         conv["messages"] = new_msgs
         if parsed["updated_at"] > float(conv.get("updated_at") or 0):
             conv["updated_at"] = parsed["updated_at"]

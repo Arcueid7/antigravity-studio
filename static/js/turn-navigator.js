@@ -92,10 +92,14 @@ export function createTurnNavigatorController({
 
   const scrollToElement = (targetEl) => {
     if (!scrollArea || !targetEl) return;
-    const areaRect = scrollArea.getBoundingClientRect();
-    const elRect = targetEl.getBoundingClientRect();
-    const nextTop = Math.max(0, scrollArea.scrollTop + (elRect.top - areaRect.top) - 24);
-    scrollArea.scrollTo({ top: nextTop, behavior: 'smooth' });
+    if (typeof targetEl.scrollIntoView === 'function') {
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      const areaRect = scrollArea.getBoundingClientRect();
+      const elRect = targetEl.getBoundingClientRect();
+      const nextTop = Math.max(0, scrollArea.scrollTop + (elRect.top - areaRect.top) - 24);
+      scrollArea.scrollTo({ top: nextTop, behavior: 'smooth' });
+    }
     flashTargetEl(targetEl);
   };
 
@@ -238,15 +242,23 @@ export function createTurnNavigatorController({
       return;
     }
 
+    // Binary search turns by viewport top so offscreen content-visibility turns stay untouched
+    let lo = 0;
+    let hi = turns.length - 1;
     let chosen = 0;
-    for (let i = 0; i < turns.length; i++) {
-      const el = turns[i].el;
-      if (!el) continue;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      const el = turns[mid].el;
+      if (!el) {
+        lo = mid + 1;
+        continue;
+      }
       const r = el.getBoundingClientRect();
       if (r.top <= focalY) {
-        chosen = i;
+        chosen = mid;
+        lo = mid + 1;
       } else {
-        break;
+        hi = mid - 1;
       }
     }
     if (chosen !== activeTurnIdx) {
