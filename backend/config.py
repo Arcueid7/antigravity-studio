@@ -40,6 +40,7 @@ DEFAULT_GITHUB_OAUTH_CLIENT_ID = "Ov23lizUasOsOMCCAyjS"
 DEFAULT_SETTINGS: Dict[str, Any] = {
     "cli_engine": "agy",
     "auto_dispatch_skills": True,
+    "sync_agy_conversations": True,
     "agy_path": "",
     "default_cwd": str(DEFAULT_WORKSPACE_DIR),
     "default_model": "default",

@@ -39,6 +39,7 @@ Write-Host "[2/3] Staging clean release files into $stageApp..."
 
 $includeFiles = @(
     "AntigravityStudio.exe",
+    "AntigravityStudio.exe.config",
     "server.py",
     "custom.css",
     "start.bat",
@@ -52,6 +53,9 @@ $includeFiles = @(
 
 foreach ($rel in $includeFiles) {
     $src = Join-Path $repoRoot $rel
+    if (-not (Test-Path -LiteralPath $src) -and $rel -eq "AntigravityStudio.exe.config") {
+        $src = Join-Path $repoRoot "desktop\AntigravityStudio.exe.config"
+    }
     if (Test-Path -LiteralPath $src) {
         Copy-Item -LiteralPath $src -Destination (Join-Path $stageApp $rel) -Force
     }

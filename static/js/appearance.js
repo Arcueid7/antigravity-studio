@@ -95,6 +95,9 @@ export function createAppearanceController({ state }) {
       el.classList.toggle('active', el.dataset.langChoice === curLang);
     });
 
+    if ($('toggle-sync-agy-convs')) {
+      $('toggle-sync-agy-convs').checked = state.settings.sync_agy_conversations !== false;
+    }
     if ($('toggle-notify-desktop')) $('toggle-notify-desktop').checked = Boolean(state.settings.notify_desktop);
     if ($('toggle-notify-sound')) $('toggle-notify-sound').checked = Boolean(state.settings.notify_sound);
   }

@@ -575,6 +575,27 @@ def stream_agy_cli(
             ACTIVE_PROCESSES.pop(conv_id, None)
         rc = proc.wait()
         if rc not in (0, None) and not parser.emitted_any_text:
+            # If resuming an external Antigravity App conversation fails in agy CLI,
+            # cleanly fall back once to a new agy session carrying compact history recap.
+            if (
+                engine_id == "agy"
+                and conv.get("agy_conversation_id")
+                and not conv.get("_resume_fallback_tried")
+                and len(conv.get("messages") or []) > 1
+            ):
+                fallback_conv = dict(conv)
+                fallback_conv["agy_conversation_id"] = None
+                fallback_conv["context_carryover"] = True
+                fallback_conv["_resume_fallback_tried"] = True
+                yield from stream_agy_cli(
+                    fallback_conv,
+                    prompt,
+                    settings,
+                    attachments=attachments,
+                    capabilities=capabilities,
+                    skill_directives=skill_directives,
+                )
+                return
             detail = "\n".join(stderr_buffer[-8:]) if stderr_buffer else f"进程退出码 {rc}"
             yield {"type": "error", "message": f"{engine_id} 执行异常 (exit {rc}):\n{detail}"}
 

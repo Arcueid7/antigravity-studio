@@ -14,4 +14,7 @@ echo [2/2] Compiling AntigravityStudio.exe (Frameless Win11 WebView2 App)...
 "%CSC%" /nologo /target:winexe /platform:x64 /optimize+ /win32icon:static\icon.ico /r:System.dll /r:System.Drawing.dll /r:System.Windows.Forms.dll /r:desktop\lib\Microsoft.Web.WebView2.Core.dll /r:desktop\lib\Microsoft.Web.WebView2.WinForms.dll /out:AntigravityStudio.exe desktop\AntigravityStudioLauncher.cs
 if errorlevel 1 exit /b 1
 
+copy /y desktop\AntigravityStudio.exe.config AntigravityStudio.exe.config >nul
+if errorlevel 1 exit /b 1
+
 echo Build succeeded: %CD%\AntigravityStudio.exe

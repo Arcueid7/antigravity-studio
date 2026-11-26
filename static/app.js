@@ -64,6 +64,7 @@ const state = {
   settings: {
     cli_engine: 'agy',
     auto_dispatch_skills: true,
+    sync_agy_conversations: true,
     agy_path: '',
     default_cwd: '',
     default_model: 'default',
@@ -643,6 +644,7 @@ const settingsModalCtrl = createSettingsModalController({
     applyAppearance: (t, f) => appearanceCtrl.applyAppearance(t, f),
     applyProfileUi: (n, a, s) => appearanceCtrl.applyProfileUi(n, a, s),
     applyInterfaceSettings: () => appearanceCtrl.applyInterfaceSettings(),
+    syncAgyConversationsNow: (showToast) => chatEngineCtrl.syncAgyConversationsNow(showToast),
     setAppLanguage,
     showAppToast,
     setSelectedMode: (m) => modelsUsageCtrl.setSelectedMode(m),
@@ -982,6 +984,7 @@ async function init() {
     listEl: $('cmdpal-list'),
     actions: {
       startNewChatView: () => chatEngineCtrl.startNewChatView(),
+      syncAgyConversationsNow: (showToast) => chatEngineCtrl.syncAgyConversationsNow(showToast),
       navigateToView: (v) => desktopChromeCtrl.navigateToView(v),
       openToolTab: (k) => rightPaneCtrl.openToolTab(k),
       switchReviewSubTab: (t) => githubPanelCtrl.switchReviewSubTab(t),

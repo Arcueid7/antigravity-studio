@@ -264,7 +264,16 @@
             </svg>
             <span>最近</span>
           </div>
-          <span class="sidebar-running-pill" id="sidebar-running-count" style="display:none;"></span>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span class="sidebar-running-pill" id="sidebar-running-count" style="display:none;"></span>
+            <button type="button" class="section-icon-btn" id="btn-sync-agy-convs" title="同步本机 agy / Antigravity 对话记录">
+              <svg width="13.5" height="13.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
+            </button>
+          </div>
         </div>
         <div class="sidebar-conv-search" id="sidebar-conv-search">
           <svg width="12.5" height="12.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1695,6 +1704,16 @@
                 <option value="accept-edits">自动编辑 (Accept Edits)</option>
                 <option value="auto">完全自动 (Auto)</option>
               </select>
+            </div>
+            <div class="agy-setting-row">
+              <div>
+                <div class="agy-row-title">同步本机 agy 对话</div>
+                <div class="agy-row-desc">自动同步本机 Antigravity 应用与 agy CLI 的聊天记录。</div>
+              </div>
+              <label class="agy-switch">
+                <input type="checkbox" id="toggle-sync-agy-convs" checked />
+                <span class="agy-switch-track"></span>
+              </label>
             </div>
             <div class="agy-setting-row agy-advanced-toggle-row" id="btn-toggle-adv-cli">
               <span class="agy-row-desc" style="color: var(--text-secondary);">高级 CLI 参数 ›</span>

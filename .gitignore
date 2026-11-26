@@ -8,7 +8,9 @@ __pycache__/
 data/
 
 # Desktop build outputs & release packages (distributed via GitHub Releases)
-AntigravityStudio.exe
+/AntigravityStudio.exe
+/AntigravityStudio.exe.config
+!desktop/AntigravityStudio.exe.config
 desktop/GenerateIcons.exe
 desktop/*.new.exe
 desktop/_verify_*.exe

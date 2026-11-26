@@ -6,7 +6,7 @@
 
 [English](README.md) · [简体中文](README_ZH.md)
 
-[![CI](https://img.shields.io/badge/tests-31%20passing-2e7d4f)](tests/run_all.py)
+[![CI](https://img.shields.io/badge/tests-32%20passing-2e7d4f)](tests/run_all.py)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform: Windows 10/11](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D6)](#quick-start)
 
@@ -25,7 +25,7 @@
   - **Offline LaTeX Math & Mermaid Diagrams**: Renders inline/display math (`$...$`, `$$...$$`, `\(...\)`, `\[...\]`) and interactive Mermaid diagrams with source toggle and automatic light/dark theme syncing.
   - **Minimal Monochrome `/` & `@` Palettes**: Type `@` to fuzzy-mention and attach workspace files; type `/` for clean single-line commands (`/review`, `/plan`, `/compact`, `/clear`, `/worktree`) and mounted local Skills.
   - **Concise Tool Activity Summaries**: Groups noisy tool calls into a single collapsible monochrome summary line (e.g., `查阅了 13 处文件 · 运行了 3 条命令`), folds repetitive steps, and expands to clickable file-jump pills and compact red/green diffs.
-  - **Multi-Session Concurrency & Navigation**: Concurrent background streaming, one-click Regenerate, conversation Fork, Checkpoint snapshots & rollback (with automatic GC), Pinning, Full-Text Search across message bodies, one-click Markdown export, and a floating **Turn Timeline Navigator** (`Ctrl+Shift+O`).
+  - **Multi-Session Concurrency, Local AGY Sync & Navigation**: Automatic read-only incremental sync with local Antigravity App (`~/.gemini/antigravity`) and `agy` CLI (`~/.gemini/antigravity-cli`) histories, Claude-style rotating starburst thinking indicator with live timer, concurrent background streaming, one-click Regenerate, conversation Fork, Checkpoint snapshots & rollback (with automatic GC), Pinning, Full-Text Search, Markdown export, and floating **Turn Timeline Navigator** (`Ctrl+Shift+O`).
 - **Dedicated Skill Repository & Auto-Dispatcher**
   - Manage starter, workspace, and global `SKILL.md` skills with create/edit/import/CLI-sync, keyword-based automatic routing, live routing preview tester, and scheduled task binding.
 - **Developer Right Sidebar (`Ctrl+\`) & Local Workflows**
@@ -101,7 +101,7 @@ antigravity-studio/
 │   ├── package_release.ps1           # Clean Release .zip + SHA256SUMS packager
 │   ├── create_shortcut.ps1           # Desktop & Start Menu shortcut helper
 │   └── lib/                          # Microsoft WebView2 redistributable DLLs
-├── tests/                         # Full-stack unittest suite (31 tests)
+├── tests/                         # Full-stack unittest suite (32 tests)
 ├── custom.css                     # User hot-reloading custom stylesheet
 ├── start.bat                      # Quick browser launch script
 └── create-desktop-shortcut.bat    # Windows shortcut creator wrapper

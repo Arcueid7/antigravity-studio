@@ -20,6 +20,11 @@ from backend.agy_runtime import (
     find_agy_binary,
     get_engine_registry,
 )
+from backend.agy_sync import (
+    mark_agy_conversation_deleted,
+    refresh_single_agy_conversation,
+    sync_agy_conversations,
+)
 from backend.chat_service import (
     CHECKPOINTS,
     SKILLS_REPO,
@@ -786,11 +791,19 @@ def dispatch_standard_request(
             }
         )
 
-    # Conversations CRUD, Full-Text Search, Pin & Markdown Export
+    # Conversations CRUD, Local AGY Sync, Full-Text Search, Pin & Markdown Export
+    if method == "POST" and path == "/api/conversations/sync":
+        sync_res = sync_agy_conversations(force=True)
+        return json_resp({**sync_res, "conversations": list_conversations()})
+
     if method == "GET" and path == "/api/conversations/search":
+        if load_settings().get("sync_agy_conversations", True):
+            sync_agy_conversations(force=False)
         return json_resp({"conversations": search_conversations(qparam("q"))})
 
     if method == "GET" and path == "/api/conversations":
+        if load_settings().get("sync_agy_conversations", True) and qparam("sync") != "0":
+            sync_agy_conversations(force=qparam("sync") == "1")
         return json_resp({"conversations": list_conversations()})
 
     if method == "POST" and path == "/api/conversations":
@@ -836,6 +849,8 @@ def dispatch_standard_request(
         cid = rest
         if method == "GET":
             conv = load_conversation(cid)
+            if conv and load_settings().get("sync_agy_conversations", True):
+                conv = refresh_single_agy_conversation(conv)
             return json_resp({"conversation": conv}) if conv else json_resp({"error": "Not found"}, 404)
         if method == "PATCH":
             conv = load_conversation(cid)
@@ -849,6 +864,12 @@ def dispatch_standard_request(
             save_conversation(conv, touch_updated=not only_pin)
             return json_resp({"conversation": conv})
         if method == "DELETE":
+            conv = load_conversation(cid)
+            if conv and conv.get("agy_conversation_id"):
+                mark_agy_conversation_deleted(
+                    str(conv["agy_conversation_id"]),
+                    int(conv.get("agy_sync_size") or 0),
+                )
             p = conv_path(cid)
             if p.exists():
                 p.unlink()

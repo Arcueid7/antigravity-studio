@@ -1135,6 +1135,32 @@ const DICT = {
     '任意エンジン・ローカルの Gemini CLI でストリーミング出力に対応',
     '선택 엔진 · 로컬 Gemini CLI 감지 시 스트리밍 출력 지원',
   ],
+  '同步本机 agy 对话': ['Sync Local agy Chats', 'ローカル agy 会話を同期', '로컬 agy 대화 동기화'],
+  '自动同步本机 Antigravity 应用与 agy CLI 的聊天记录。': [
+    'Automatically sync conversations from local Antigravity App and agy CLI.',
+    'ローカルの Antigravity アプリおよび agy CLI の会話履歴を自動同期します。',
+    '로컬 Antigravity 앱 및 agy CLI의 대화 기록을 자동으로 동기화합니다.',
+  ],
+  '同步本机 agy / Antigravity 对话记录': [
+    'Sync Local agy / Antigravity Conversations',
+    'ローカル agy / Antigravity 会話を同期',
+    '로컬 agy / Antigravity 대화 동기화',
+  ],
+  '从本机 Antigravity 应用与 agy CLI 增量拉取并合并最新聊天记录': [
+    'Incrementally pull and merge recent chats from Antigravity App & agy CLI',
+    'Antigravity アプリと agy CLI から最新の会話を増分同期します',
+    'Antigravity 앱과 agy CLI에서 최신 대화를 증분 동기화합니다',
+  ],
+  '本机 agy 对话已是最新 ✓': [
+    'Local agy conversations are up to date ✓',
+    'ローカルの agy 会話は最新です ✓',
+    '로컬 agy 대화가 이미 최신 상태입니다 ✓',
+  ],
+  '正在同步本机 agy 对话…': [
+    'Syncing local agy conversations…',
+    'ローカル agy 会話を同期中…',
+    '로컬 agy 대화 동기화 중…',
+  ],
   'Antigravity 回复已完成': ['Antigravity Reply Complete', 'Antigravity の応答が完了しました', 'Antigravity 답변 완료'],
   '你的任务已完成。': ['Your task has finished.', 'タスクが完了しました。', '작업이 완료되었습니다.'],
   '（当前）': [' (Active)', '（現在）', ' (현재)'],
@@ -1594,6 +1620,18 @@ const PATTERN_RULES = [
     ][i],
   ],
   [
+    /^已同步本机 agy 对话：新增 (\d+) 条，更新 (\d+) 条 ✓$/,
+    (m, i) => [
+      `Synced local agy chats: ${m[1]} imported, ${m[2]} updated ✓`,
+      `ローカル agy 会話を同期：新規 ${m[1]} 件・更新 ${m[2]} 件 ✓`,
+      `로컬 agy 대화 동기화: ${m[1]}개 추가, ${m[2]}개 업데이트 ✓`,
+    ][i],
+  ],
+  [
+    /^同步对话失败：(.+)$/,
+    (m, i) => [`Conversation sync failed: ${m[1]}`, `会話の同期に失敗: ${m[1]}`, `대화 동기화 실패: ${m[1]}`][i],
+  ],
+  [
     /^· 关键词: (.+)$/,
     (m, i) => [`· Matched: ${m[1]}`, `· 一致キーワード: ${m[1]}`, `· 일치 키워드: ${m[1]}`][i],
   ],
@@ -1684,6 +1722,8 @@ const SKIP_ANCESTOR_SELECTOR = [
   '.rp-term-output',
   '.artifact-source-view',
   '.conv-title',
+  '.conv-item-title',
+  '.conv-item-snippet',
   '.project-name',
   '.rp-tree-name',
   '.turn-nav-item-text',

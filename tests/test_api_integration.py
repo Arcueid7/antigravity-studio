@@ -26,6 +26,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import server  # noqa: E402
+import backend.agy_sync as agy_sync_mod  # noqa: E402
 import backend.chat_service as chat_service_mod  # noqa: E402
 import backend.config as config_mod  # noqa: E402
 import backend.routes as routes_mod  # noqa: E402
@@ -133,6 +134,11 @@ class IsolatedStudioTestCase(unittest.TestCase):
             (config_mod, "CUSTOM_CSS_FILE", self.custom_css_file),
             (storage_mod, "CONV_DIR", self.conv_dir),
             (storage_mod, "SCHEDULES_FILE", self.schedules_file),
+            (agy_sync_mod, "CONV_DIR", self.conv_dir),
+            (agy_sync_mod, "DATA_DIR", self.data_dir),
+            (agy_sync_mod, "DEFAULT_WORKSPACE_DIR", self.ws_dir),
+            (agy_sync_mod, "AGY_SYNC_ROOTS", []),
+            (agy_sync_mod, "_LAST_AUTO_SYNC_TS", 0.0),
             (routes_mod, "DATA_DIR", self.data_dir),
             (routes_mod, "UPLOAD_DIR", self.upload_dir),
             (routes_mod, "DEFAULT_WORKSPACE_DIR", self.ws_dir),

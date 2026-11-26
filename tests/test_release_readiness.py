@@ -256,9 +256,14 @@ class TestReleaseHygieneAndDesktopCompile(unittest.TestCase):
             "create-desktop-shortcut.bat",
             ".github/workflows/ci.yml",
             ".github/workflows/release.yml",
+            "desktop/AntigravityStudio.exe.config",
             "desktop/package_release.ps1",
         ):
             self.assertTrue((ROOT / required_doc).is_file(), f"Missing release file: {required_doc}")
+
+        exe_cfg = (ROOT / "desktop" / "AntigravityStudio.exe.config").read_text(encoding="utf-8")
+        self.assertIn("loadFromRemoteSources", exe_cfg)
+        self.assertIn('enabled="true"', exe_cfg)
 
         html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
         self.assertNotIn("例如：Arcueid", html)

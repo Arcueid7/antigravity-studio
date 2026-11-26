@@ -6,7 +6,7 @@
 
 [English](README.md) · [简体中文](README_ZH.md)
 
-[![CI](https://img.shields.io/badge/tests-31%20passing-2e7d4f)](tests/run_all.py)
+[![CI](https://img.shields.io/badge/tests-32%20passing-2e7d4f)](tests/run_all.py)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform: Windows 10/11](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D6)](#快速开始)
 
@@ -25,7 +25,7 @@
   - **离线 LaTeX 公式 + Mermaid 图表**：支持行内/块级数学公式（`$...$`、`$$...$$`、`\(...\)`、`\[...\]`）与 Mermaid 流程图/架构图实时渲染，支持图表/源码一键切换并自动跟随浅/深主题。
   - **原生极简 `/` 与 `@` 联想面板**：键入 `@` 模糊搜索并附加工作区文件；键入 `/` 弹出无顶栏单行单色指令与技能菜单（`/review`、`/plan`、`/compact`、`/clear`、`/worktree` + 全部本地 Skills）。
   - **精简单行工具活动摘要**：将多步工具调用自动汇总为一条克制的单行单色摘要（如 `查阅了 13 处文件 · 运行了 3 条命令`），连续重复步骤自动合并折叠，展开后支持点击文件胶囊直达右侧阅读器与紧凑红绿 Diff 查看。
-  - **多会话并发与导航定位**：支持并发流式对话、回复一键「重新生成」、消息分叉、工作区检查点快照与一键回滚（启动自动 GC 回收旧快照与孤儿对象）、对话置顶、正文全文检索、一键导出 Markdown，以及左侧悬浮「对话轮次时间轴目录」（`Ctrl+Shift+O`）。
+  - **多会话并发、本机 AGY 同步与导航定位**：自动增量同步本机 Antigravity 应用（`~/.gemini/antigravity`）与 `agy` CLI（`~/.gemini/antigravity-cli`）聊天记录、Claude 风格旋转星芒与流光计时思考提示器、并发流式对话、回复一键「重新生成」、消息分叉、工作区检查点快照与一键回滚（启动自动 GC）、对话置顶、正文全文检索、一键导出 Markdown，以及左侧悬浮「对话轮次时间轴目录」（`Ctrl+Shift+O`）。
 - **专属 Skill 仓库与智能自动调度**
   - 内置开箱即用技能库，支持新建、编辑、导入、同步至 `agy` 全局目录、关键词自动路由匹配、调度试算预览以及绑定「已排定」本地定时任务。
 - **右侧工作区与开发者边栏（`Ctrl+\`）**
@@ -101,7 +101,7 @@ antigravity-studio/
 │   ├── package_release.ps1           # 发布包 .zip + SHA256SUMS 打包脚本
 │   ├── create_shortcut.ps1           # 桌面/开始菜单快捷方式脚本
 │   └── lib/                          # Microsoft WebView2 运行库 DLL
-├── tests/                         # 全栈单元测试与集成测试套（31 项）
+├── tests/                         # 全栈单元测试与集成测试套（32 项）
 ├── custom.css                     # 用户热重载自定义样式表
 ├── start.bat                      # 命令行快速启动脚本
 └── create-desktop-shortcut.bat    # 创建桌面快捷方式入口脚本

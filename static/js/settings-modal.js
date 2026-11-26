@@ -156,6 +156,15 @@ export function createSettingsModalController({
       actions.setSelectedMode(m);
       await persistSettingsPatch({ default_mode: m });
     });
+    if ($('toggle-sync-agy-convs')) {
+      $('toggle-sync-agy-convs').addEventListener('change', async (e) => {
+        const enabled = Boolean(e.target.checked);
+        await persistSettingsPatch({ sync_agy_conversations: enabled });
+        if (enabled && actions.syncAgyConversationsNow) {
+          actions.syncAgyConversationsNow(false);
+        }
+      });
+    }
     $('btn-toggle-adv-cli').addEventListener('click', () => {
       const body = $('adv-cli-body');
       body.style.display = body.style.display === 'none' ? 'block' : 'none';

@@ -13,6 +13,46 @@ import {
 import { updateContextMeterUi } from './context-meter.js';
 import { renderMermaidDiagramsIn } from './rich-render.js';
 import { renderToolActivityGroup } from './tool-card-renderer.js';
+import { getLanguage } from './i18n.js';
+
+const CLAUDE_STAR_SVG =
+  '<svg class="claude-think-star-svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" aria-hidden="true">' +
+  '<line x1="12" y1="2.4" x2="12" y2="7.2"></line>' +
+  '<line x1="12" y1="16.8" x2="12" y2="21.6"></line>' +
+  '<line x1="2.4" y1="12" x2="7.2" y2="12"></line>' +
+  '<line x1="16.8" y1="12" x2="21.6" y2="12"></line>' +
+  '<line x1="5.3" y1="5.3" x2="8.6" y2="8.6"></line>' +
+  '<line x1="15.4" y1="15.4" x2="18.7" y2="18.7"></line>' +
+  '<line x1="18.7" y1="5.3" x2="15.4" y2="8.6"></line>' +
+  '<line x1="8.6" y1="15.4" x2="5.3" y2="18.7"></line>' +
+  '<circle cx="12" cy="12" r="1.45" fill="currentColor" stroke="none"></circle>' +
+  '</svg>';
+
+const THINKING_PHRASES = {
+  'zh-CN': {
+    thinking: ['正在思考…', '梳理思路中…', '分析上下文…', '推敲细节中…', '构思回复中…'],
+    working: ['正在处理任务…', '检索与分析中…', '整理执行结果…'],
+  },
+  en: {
+    thinking: ['Thinking…', 'Reasoning…', 'Pondering…', 'Connecting ideas…', 'Working it through…'],
+    working: ['Working on it…', 'Inspecting details…', 'Synthesizing results…'],
+  },
+  ja: {
+    thinking: ['思考中…', '考えを整理しています…', '文脈を分析中…', '詳細を詰めています…'],
+    working: ['作業を進めています…', '詳細を確認中…', '結果を整理中…'],
+  },
+  ko: {
+    thinking: ['생각하는 중…', '아이디어를 정리하는 중…', '맥락을 분석하는 중…', '세부 사항을 다듬는 중…'],
+    working: ['작업을 처리하는 중…', '세부 내용을 확인하는 중…', '결과를 정리하는 중…'],
+  },
+};
+
+function getThinkingPhrase(phase = 'thinking', index = 0) {
+  const lang = getLanguage();
+  const pack = THINKING_PHRASES[lang] || THINKING_PHRASES['zh-CN'];
+  const arr = pack[phase] || pack.thinking;
+  return arr[index % arr.length];
+}
 
 function highlightMatchText(text, query) {
   const safe = escapeHtml(text || '');
@@ -300,7 +340,7 @@ export function createChatEngineController({ state, dom, actions }) {
     thinkingBox.innerHTML = `
       <button class="thinking-header" type="button">
         <span class="thinking-label-wrap">
-          <span class="thinking-pulse"></span>
+          <span class="thinking-pulse">${CLAUDE_STAR_SVG}</span>
           <span class="thinking-status-text">正在思考…</span>
         </span>
         <svg class="thinking-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -317,6 +357,16 @@ export function createChatEngineController({ state, dom, actions }) {
     toolsStack.className = 'tools-stack';
     toolsStack.style.display = 'none';
 
+    const thinkingIndicatorEl = document.createElement('div');
+    thinkingIndicatorEl.className = 'assistant-thinking-indicator';
+    thinkingIndicatorEl.setAttribute('data-i18n-skip', '1');
+    thinkingIndicatorEl.style.display = 'none';
+    thinkingIndicatorEl.innerHTML = `
+      <span class="claude-think-star">${CLAUDE_STAR_SVG}</span>
+      <span class="claude-think-phrase"></span>
+      <span class="claude-think-elapsed"></span>
+    `;
+
     const proseEl = document.createElement('div');
     proseEl.className = 'msg-assistant-prose';
 
@@ -331,6 +381,7 @@ export function createChatEngineController({ state, dom, actions }) {
     wrap.appendChild(skillsBarEl);
     wrap.appendChild(thinkingBox);
     wrap.appendChild(toolsStack);
+    wrap.appendChild(thinkingIndicatorEl);
     wrap.appendChild(proseEl);
     wrap.appendChild(errEl);
     wrap.appendChild(footerEl);
@@ -339,6 +390,42 @@ export function createChatEngineController({ state, dom, actions }) {
     const toolIndexById = new Map();
     let thinkingBuf = '';
     let textBuf = '';
+    let indicatorTimer = null;
+    let indicatorStartedAt = 0;
+    let indicatorPhase = 'thinking';
+    let indicatorPhraseIdx = 0;
+    let indicatorTickCount = 0;
+    const phraseEl = thinkingIndicatorEl.querySelector('.claude-think-phrase');
+    const elapsedEl = thinkingIndicatorEl.querySelector('.claude-think-elapsed');
+
+    const renderIndicatorFrame = (fadePhrase = false) => {
+      if (thinkingIndicatorEl.style.display === 'none') return;
+      const nextPhrase = getThinkingPhrase(indicatorPhase, indicatorPhraseIdx);
+      if (phraseEl) {
+        if (fadePhrase && phraseEl.textContent && phraseEl.textContent !== nextPhrase) {
+          phraseEl.classList.add('is-fading');
+          setTimeout(() => {
+            phraseEl.textContent = nextPhrase;
+            phraseEl.classList.remove('is-fading');
+          }, 160);
+        } else if (phraseEl.textContent !== nextPhrase) {
+          phraseEl.textContent = nextPhrase;
+        }
+      }
+      if (elapsedEl && indicatorStartedAt) {
+        const sec = Math.floor((Date.now() - indicatorStartedAt) / 1000);
+        elapsedEl.textContent = sec >= 1 ? `· ${sec}s` : '';
+      }
+    };
+
+    const stopThinkingIndicator = () => {
+      if (indicatorTimer) {
+        clearInterval(indicatorTimer);
+        indicatorTimer = null;
+      }
+      thinkingIndicatorEl.style.display = 'none';
+    };
+
     const turnMeta = {
       convId: metaInfo.convId || '',
       index: typeof metaInfo.index === 'number' ? metaInfo.index : -1,
@@ -350,6 +437,23 @@ export function createChatEngineController({ state, dom, actions }) {
       setMeta(patch) {
         Object.assign(turnMeta, patch || {});
       },
+      startThinkingIndicator(phase = 'thinking') {
+        indicatorPhase = phase;
+        indicatorPhraseIdx = 0;
+        indicatorTickCount = 0;
+        indicatorStartedAt = Date.now();
+        thinkingIndicatorEl.style.display = 'inline-flex';
+        renderIndicatorFrame(false);
+        if (indicatorTimer) clearInterval(indicatorTimer);
+        indicatorTimer = setInterval(() => {
+          indicatorTickCount += 1;
+          if (!wrap.isConnected) return;
+          const rotate = indicatorTickCount % 3 === 0;
+          if (rotate) indicatorPhraseIdx += 1;
+          renderIndicatorFrame(rotate);
+        }, 1000);
+      },
+      stopThinkingIndicator,
       showDispatchedSkills(list) {
         if (!Array.isArray(list) || !list.length) return;
         const reasonMap = { manual: '手动挂载', slash: '斜杠调度', auto: '自动调度' };
@@ -369,12 +473,18 @@ export function createChatEngineController({ state, dom, actions }) {
       appendThinking(delta, isLive = true) {
         thinkingBuf += delta;
         thinkingBox.style.display = 'block';
+        if (isLive) {
+          thinkingBox.classList.add('is-thinking-live');
+          // Avoid showing two simultaneous "Thinking..." banners while live reasoning streams
+          thinkingIndicatorEl.style.display = 'none';
+        }
         if (isLive && thinkingBuf.length < 400) {
           thinkingBox.classList.add('open');
         }
         thinkingBox.querySelector('.thinking-body').textContent = thinkingBuf;
       },
       finishThinking(elapsedSec) {
+        thinkingBox.classList.remove('is-thinking-live');
         const pulse = thinkingBox.querySelector('.thinking-pulse');
         if (pulse) pulse.style.display = 'none';
         if (thinkingBuf) {
@@ -400,6 +510,11 @@ export function createChatEngineController({ state, dom, actions }) {
           toolIndexById.set(tid, toolList.length);
           toolList.push({ ...tool, id: tid });
         }
+        if (!textBuf && indicatorTimer) {
+          indicatorPhase = 'working';
+          if (!thinkingBuf) thinkingIndicatorEl.style.display = 'inline-flex';
+          renderIndicatorFrame(false);
+        }
         renderToolActivityGroup(toolsStack, toolList, {
           activeCwd: state.activeCwd || '',
           openLocalFileSmart: actions.openLocalFileSmart,
@@ -408,9 +523,13 @@ export function createChatEngineController({ state, dom, actions }) {
       },
       appendText(delta) {
         textBuf += delta;
-        proseEl.innerHTML = actions.renderMarkdown(textBuf, true);
+        if (textBuf.trim()) {
+          stopThinkingIndicator();
+          proseEl.innerHTML = actions.renderMarkdown(textBuf, true);
+        }
       },
       showError(message, code) {
+        stopThinkingIndicator();
         errEl.style.display = 'block';
         errEl.textContent = message;
         if (code === 'AGY_NOT_FOUND' || code === 'ENGINE_NOT_FOUND') {
@@ -427,6 +546,7 @@ export function createChatEngineController({ state, dom, actions }) {
         }
       },
       finalize(meta = {}) {
+        stopThinkingIndicator();
         if (meta.checkpoint_id) turnMeta.checkpointId = meta.checkpoint_id;
         if (typeof meta.index === 'number') turnMeta.index = meta.index;
         if (meta.convId) turnMeta.convId = meta.convId;
@@ -502,6 +622,48 @@ export function createChatEngineController({ state, dom, actions }) {
       return;
     }
     renderConversationList();
+  }
+
+  let agySyncing = false;
+  async function syncAgyConversationsNow(showToast = true) {
+    if (agySyncing) return;
+    agySyncing = true;
+    const syncBtn = document.getElementById('btn-sync-agy-convs');
+    if (syncBtn) syncBtn.classList.add('is-syncing');
+    try {
+      const res = await fetch('/api/conversations/sync', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error((data && data.error) || `HTTP ${res.status}`);
+      }
+      state.conversations = data.conversations || state.conversations;
+      if ((state.convSearchQuery || '').trim()) {
+        await runConversationFullTextSearch(state.convSearchQuery);
+      } else {
+        renderConversationList();
+      }
+      if (state.activeConv && state.activeConv.id && !state.activeStreams.has(state.activeConv.id)) {
+        const curId = state.activeConv.id;
+        const stillExists = state.conversations.some((c) => c.id === curId);
+        if (stillExists && (data.updated > 0)) {
+          await selectConversation(curId);
+        }
+      }
+      if (showToast) {
+        const imp = Number(data.imported || 0);
+        const upd = Number(data.updated || 0);
+        if (imp > 0 || upd > 0) {
+          actions.showAppToast(`已同步本机 agy 对话：新增 ${imp} 条，更新 ${upd} 条 ✓`, { duration: 2800 });
+        } else {
+          actions.showAppToast('本机 agy 对话已是最新 ✓', { duration: 2000 });
+        }
+      }
+    } catch (err) {
+      if (showToast) actions.showAppToast(`同步对话失败：${err.message}`);
+    } finally {
+      agySyncing = false;
+      if (syncBtn) syncBtn.classList.remove('is-syncing');
+    }
   }
 
   async function runConversationFullTextSearch(rawQuery) {
@@ -624,11 +786,13 @@ export function createChatEngineController({ state, dom, actions }) {
         (state.activeConv && state.activeConv.id === c.id ? ' active' : '') +
         (isPinned ? ' is-pinned' : '') +
         (hasSnippet ? ' has-snippet' : '');
+      const srcTag = c.agy_source === 'app' ? 'AGY' : c.agy_source === 'cli' ? 'CLI' : '';
       row.innerHTML = `
         <div class="conv-item-main">
           <div class="conv-item-top">
             ${isRunning ? '<span class="conv-status-dot running" title="后台运行中"></span>' : isUnreadDone ? '<span class="conv-status-dot done" title="新回复已完成"></span>' : isPinned ? '<span class="conv-pinned-badge" title="已置顶">📌</span>' : ''}
             <span class="conv-item-title">${highlightMatchText(c.title || '新聊天', q)}</span>
+            ${srcTag ? `<span class="conv-source-tag" data-i18n-skip="1">${srcTag}</span>` : ''}
           </div>
           ${hasSnippet ? `<div class="conv-item-snippet">${highlightMatchText(c.match_snippet, q)}</div>` : ''}
         </div>
@@ -980,8 +1144,7 @@ export function createChatEngineController({ state, dom, actions }) {
     if (actions.refreshTurnNavigator) actions.refreshTurnNavigator();
     const assistantTurn = createAssistantTurnController(null, { convId, index: existingMsgCount + 1 });
     messagesEl.appendChild(assistantTurn.el);
-    assistantTurn.el.querySelector('.msg-assistant-prose').innerHTML =
-      '<span class="streaming-spark">✦</span>';
+    assistantTurn.startThinkingIndicator('thinking');
     scrollArea.scrollTop = scrollArea.scrollHeight;
 
     const payload = {
@@ -1186,6 +1349,10 @@ export function createChatEngineController({ state, dom, actions }) {
     if (btnTopbarExportMd) {
       btnTopbarExportMd.addEventListener('click', exportActiveConversationMarkdown);
     }
+    const btnSyncAgy = document.getElementById('btn-sync-agy-convs');
+    if (btnSyncAgy) {
+      btnSyncAgy.addEventListener('click', () => syncAgyConversationsNow(true));
+    }
 
     messagesEl.addEventListener('click', async (e) => {
       const imgActionBtn = e.target.closest('[data-img-action]');
@@ -1270,6 +1437,7 @@ export function createChatEngineController({ state, dom, actions }) {
     renderPendingAttachments,
     uploadLocalFiles,
     refreshConversationList,
+    syncAgyConversationsNow,
     refreshContextMeter,
     renderConversationList,
     startNewChatView,

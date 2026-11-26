@@ -616,5 +616,242 @@ class TestConversationSearchPinAndExport(unittest.TestCase):
                 server.CONV_DIR = orig_conv_dir
 
 
+class TestAgyConversationSync(unittest.TestCase):
+    def test_sync_imports_app_and_cli_filters_subagents_merges_updates_and_respects_delete(self) -> None:
+        import sqlite3
+        import backend.agy_sync as agy_sync_mod
+        import backend.storage as storage_mod
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            data_dir = root / "studio_data"
+            conv_dir = data_dir / "conversations"
+            ws_dir = data_dir / "workspace"
+            conv_dir.mkdir(parents=True)
+            ws_dir.mkdir(parents=True)
+
+            app_root = root / "antigravity"
+            cli_root = root / "antigravity-cli"
+            for r in (app_root, cli_root):
+                (r / "brain").mkdir(parents=True)
+
+            # 1. Create fake App conversation + subagent conversation in app_root SQLite & brain
+            app_cid = "aaaaaaaa-1111-2222-3333-444444444444"
+            sub_cid = "bbbbbbbb-1111-2222-3333-444444444444"
+            cli_cid = "cccccccc-1111-2222-3333-444444444444"
+
+            app_tr = app_root / "brain" / app_cid / ".system_generated" / "logs" / "transcript.jsonl"
+            app_tr.parent.mkdir(parents=True)
+            app_tr.write_text(
+                "\n".join(
+                    [
+                        json.dumps(
+                            {
+                                "step_index": 0,
+                                "source": "USER_EXPLICIT",
+                                "type": "USER_INPUT",
+                                "created_at": "2026-11-26T04:00:00Z",
+                                "content": "<USER_REQUEST>\n分析架构设计\n</USER_REQUEST>\n<ADDITIONAL_METADATA>ignored</ADDITIONAL_METADATA>",
+                            },
+                            ensure_ascii=False,
+                        ),
+                        json.dumps(
+                            {
+                                "step_index": 1,
+                                "source": "MODEL",
+                                "type": "PLANNER_RESPONSE",
+                                "created_at": "2026-11-26T04:00:05Z",
+                                "model": "gemini-4-neon-high",
+                                "thinking": "先看主入口文件",
+                                "tool_calls": [{"name": "read_file", "args": {"Path": '"C:\\\\demo\\\\server.py"'}}],
+                            },
+                            ensure_ascii=False,
+                        ),
+                        json.dumps(
+                            {
+                                "step_index": 2,
+                                "source": "MODEL",
+                                "type": "GENERIC",
+                                "content": "huge raw tool output skipped by prefilter",
+                            }
+                        ),
+                        json.dumps(
+                            {
+                                "step_index": 3,
+                                "source": "MODEL",
+                                "type": "PLANNER_RESPONSE",
+                                "created_at": "2026-11-26T04:00:10Z",
+                                "model": "gemini-4-neon-high",
+                                "content": "架构清晰，采用纯标准库分层设计。",
+                            },
+                            ensure_ascii=False,
+                        ),
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            sub_tr = app_root / "brain" / sub_cid / ".system_generated" / "logs" / "transcript.jsonl"
+            sub_tr.parent.mkdir(parents=True)
+            sub_tr.write_text(
+                json.dumps({"step_index": 0, "source": "MODEL", "type": "PLANNER_RESPONSE", "content": "subagent"}) + "\n",
+                encoding="utf-8",
+            )
+
+            cli_tr = cli_root / "brain" / cli_cid / ".system_generated" / "logs" / "transcript.jsonl"
+            cli_tr.parent.mkdir(parents=True)
+            cli_tr.write_text(
+                "\n".join(
+                    [
+                        json.dumps(
+                            {
+                                "step_index": 0,
+                                "source": "USER_EXPLICIT",
+                                "type": "USER_INPUT",
+                                "created_at": "2026-11-26T05:00:00Z",
+                                "content": "<USER_REQUEST>\n检查 CLI 同步\n</USER_REQUEST>",
+                            },
+                            ensure_ascii=False,
+                        ),
+                        json.dumps(
+                            {
+                                "step_index": 1,
+                                "source": "MODEL",
+                                "type": "PLANNER_RESPONSE",
+                                "created_at": "2026-11-26T05:00:02Z",
+                                "model": "gemini-4-flash",
+                                "content": "CLI 同步正常。",
+                            },
+                            ensure_ascii=False,
+                        ),
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            # Seed SQLite conversation_summaries.db in both roots
+            for db_root, rows in [
+                (
+                    app_root,
+                    [
+                        (app_cid, "架构设计讨论", "分析架构设计", 4, "2026-11-26 04:00:10+00:00", "", "", 0, "antigravity", 0),
+                        (sub_cid, "", "", 1, "2026-11-26 04:01:00+00:00", "", app_cid, 1, "antigravity", 0),
+                    ],
+                ),
+                (
+                    cli_root,
+                    [
+                        (cli_cid, "", "检查 CLI 同步", 2, "2026-11-26 05:00:02+00:00", '["file:///C:/DemoProj"]', "", 0, "antigravity-cli", 0),
+                    ],
+                ),
+            ]:
+                con = sqlite3.connect(str(db_root / "conversation_summaries.db"))
+                con.execute(
+                    """
+                    CREATE TABLE conversation_summaries (
+                        conversation_id TEXT PRIMARY KEY,
+                        title TEXT, preview TEXT, step_count INTEGER,
+                        last_modified_time TEXT, workspace_uris TEXT,
+                        parent_conversation_id TEXT, nesting_depth INTEGER,
+                        app_data_dir TEXT, killed INTEGER
+                    )
+                    """
+                )
+                con.executemany(
+                    "INSERT INTO conversation_summaries VALUES (?,?,?,?,?,?,?,?,?,?)",
+                    rows,
+                )
+                con.commit()
+                con.close()
+
+            saved = [
+                (agy_sync_mod, "CONV_DIR", agy_sync_mod.CONV_DIR),
+                (agy_sync_mod, "DATA_DIR", agy_sync_mod.DATA_DIR),
+                (agy_sync_mod, "DEFAULT_WORKSPACE_DIR", agy_sync_mod.DEFAULT_WORKSPACE_DIR),
+                (agy_sync_mod, "AGY_SYNC_ROOTS", agy_sync_mod.AGY_SYNC_ROOTS),
+                (agy_sync_mod, "_LAST_AUTO_SYNC_TS", agy_sync_mod._LAST_AUTO_SYNC_TS),
+                (storage_mod, "CONV_DIR", storage_mod.CONV_DIR),
+            ]
+            try:
+                agy_sync_mod.CONV_DIR = conv_dir
+                agy_sync_mod.DATA_DIR = data_dir
+                agy_sync_mod.DEFAULT_WORKSPACE_DIR = ws_dir
+                agy_sync_mod.AGY_SYNC_ROOTS = [("app", app_root), ("cli", cli_root)]
+                agy_sync_mod._LAST_AUTO_SYNC_TS = 0.0
+                storage_mod.CONV_DIR = conv_dir
+
+                res1 = agy_sync_mod.sync_agy_conversations(force=True)
+                self.assertTrue(res1["ok"])
+                self.assertEqual(res1["imported"], 2)  # app_cid + cli_cid (sub_cid excluded!)
+
+                convs = storage_mod.list_conversations()
+                self.assertEqual(len(convs), 2)
+                by_agy = {c["agy_conversation_id"]: c for c in convs}
+                self.assertIn(app_cid, by_agy)
+                self.assertIn(cli_cid, by_agy)
+                self.assertNotIn(sub_cid, by_agy)
+                self.assertEqual(by_agy[app_cid]["title"], "架构设计讨论")
+                self.assertEqual(by_agy[app_cid]["agy_source"], "app")
+                self.assertEqual(by_agy[cli_cid]["agy_source"], "cli")
+                self.assertEqual(by_agy[cli_cid]["cwd"], r"C:\DemoProj")
+
+                # Verify parsed message details & cleaned tool args
+                loaded_app = storage_mod.load_conversation(by_agy[app_cid]["id"])
+                assert loaded_app is not None
+                self.assertEqual(len(loaded_app["messages"]), 2)
+                self.assertEqual(loaded_app["messages"][0]["content"], "分析架构设计")
+                self.assertEqual(loaded_app["messages"][1]["thinking"], "先看主入口文件")
+                self.assertEqual(loaded_app["messages"][1]["tools"][0]["args"]["Path"], r"C:\demo\server.py")
+
+                # Second sync with unchanged files skips cleanly
+                res2 = agy_sync_mod.sync_agy_conversations(force=True)
+                self.assertEqual(res2["imported"], 0)
+                self.assertEqual(res2["updated"], 0)
+
+                # Simulate new turn appended externally in CLI transcript -> incremental merge!
+                with cli_tr.open("a", encoding="utf-8") as f:
+                    f.write(
+                        json.dumps(
+                            {
+                                "step_index": 2,
+                                "source": "USER_EXPLICIT",
+                                "type": "USER_INPUT",
+                                "created_at": "2026-11-26T05:05:00Z",
+                                "content": "<USER_REQUEST>\n续聊第二轮\n</USER_REQUEST>",
+                            },
+                            ensure_ascii=False,
+                        )
+                        + "\n"
+                        + json.dumps(
+                            {
+                                "step_index": 3,
+                                "source": "MODEL",
+                                "type": "PLANNER_RESPONSE",
+                                "created_at": "2026-11-26T05:05:03Z",
+                                "content": "已同步第二轮回复。",
+                            },
+                            ensure_ascii=False,
+                        )
+                        + "\n"
+                    )
+                refreshed = agy_sync_mod.refresh_single_agy_conversation(
+                    storage_mod.load_conversation(by_agy[cli_cid]["id"]) or {}
+                )
+                self.assertEqual(len(refreshed["messages"]), 4)
+                self.assertEqual(refreshed["messages"][3]["content"], "已同步第二轮回复。")
+
+                # Delete tombstone prevents immediate auto-sync re-import
+                agy_sync_mod.mark_agy_conversation_deleted(app_cid, loaded_app.get("agy_sync_size", 0))
+                storage_mod.conv_path(by_agy[app_cid]["id"]).unlink()
+                agy_sync_mod._LAST_AUTO_SYNC_TS = 0.0
+                res3 = agy_sync_mod.sync_agy_conversations(force=False)
+                self.assertEqual(res3["imported"], 0)
+            finally:
+                for mod, attr, orig in reversed(saved):
+                    setattr(mod, attr, orig)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

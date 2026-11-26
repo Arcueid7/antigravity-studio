@@ -36,6 +36,7 @@ const CMD_ICONS = {
   message: svg('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'),
   font: svg('<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>'),
   globe: svg('<circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>'),
+  sync: svg('<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>'),
 };
 
 function scoreFuzzyMatch(haystack, tokens) {
@@ -93,6 +94,15 @@ export function createCommandPaletteController({
           actions.startNewChatView();
           actions.navigateToView('chat');
         },
+      },
+      {
+        section: '常用指令',
+        iconKey: 'sync',
+        title: '同步本机 agy / Antigravity 对话记录',
+        desc: '从本机 Antigravity 应用与 agy CLI 增量拉取并合并最新聊天记录',
+        kbd: '',
+        keywords: 'sync agy antigravity cli conversations chat 同步 对话 聊天 记录',
+        run: () => actions.syncAgyConversationsNow && actions.syncAgyConversationsNow(true),
       },
       {
         section: '常用指令',
