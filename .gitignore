@@ -1,0 +1,21 @@
+# Python bytecode & test caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Local runtime state, credentials, conversations, checkpoints & WebView2 cache
+data/
+
+# Desktop build outputs & release packages (distributed via GitHub Releases)
+AntigravityStudio.exe
+desktop/GenerateIcons.exe
+desktop/*.new.exe
+desktop/_verify_*.exe
+dist/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log

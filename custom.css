@@ -1,0 +1,27 @@
+/* ==========================================================================
+   Antigravity Studio (agy) — 用户自定义样式表 (custom.css)
+   --------------------------------------------------------------------------
+   提示：
+   1. 直接在任意编辑器修改并保存本文件，浏览器界面会自动在 1 秒内无刷新热重载！
+   2. 也可以在界面右上角点击「Custom CSS」抽屉在线实时编辑和保存。
+   3. 常用核心 CSS 变量参考（取消注释即可覆盖）：
+   ========================================================================== */
+
+/*
+:root {
+  --bg-main: #FAF9F5;
+  --bg-sidebar: #F3F1E9;
+  --bg-composer: #FFFFFF;
+  --bg-user-bubble: #F0EEE6;
+  --accent: #C96442;
+
+  /* 双方字体与字号可独立覆盖 */
+  --font-user: "Inter", "Noto Sans SC", -apple-system, sans-serif;
+  --font-assistant: "Newsreader", Georgia, "Noto Serif SC", serif;
+  --font-mono: "JetBrains Mono", "Ubuntu Sans Mono", Consolas, monospace;
+  --font-size-user: 15px;
+  --font-size-body: 16px;
+  --line-height-body: 1.72;
+  --chat-max-width: 768px;
+}
+*/

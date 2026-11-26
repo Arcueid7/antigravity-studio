@@ -1,0 +1,2293 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light" data-font="serif">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" id="meta-theme-color" content="#FAF9F5" />
+  <title>Antigravity Studio</title>
+  <link rel="icon" href="/static/icon.ico?v=ag2" sizes="any" />
+  <link rel="icon" type="image/svg+xml" href="/static/icon.svg?v=ag2" />
+  <link rel="icon" type="image/png" sizes="256x256" href="/static/icon-256.png?v=ag2" />
+  <link rel="manifest" href="/static/manifest.json?v=ag2" />
+  <!-- Non-blocking Latin Editorial Serif, Sans & Mono (instant local fallback offline) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&display=swap"
+    rel="stylesheet"
+    media="print"
+    onload="this.media='all'"
+  />
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet" />
+  </noscript>
+  <!-- Local Offline KaTeX Math & Mermaid Diagram Engines (zero CDN dependency) -->
+  <link rel="stylesheet" href="/static/vendor/katex/katex.min.css" />
+  <script defer src="/static/vendor/katex/katex.min.js"></script>
+  <script defer src="/static/vendor/mermaid/mermaid.min.js"></script>
+  <!-- Core Antigravity Studio Design System -->
+  <link rel="stylesheet" href="/static/studio-theme.css" />
+  <!-- User Custom CSS (persisted on disk & live hot-reloaded silently) -->
+  <link id="user-custom-css-link" rel="stylesheet" href="/custom.css" />
+  <style id="live-preview-css"></style>
+</head>
+<body>
+  <div class="desktop-window-shell">
+    <!-- ==================== Unified Frameless Codex-Style Top Bar ==================== -->
+    <header class="codex-titlebar" id="codex-titlebar">
+      <div class="codex-tb-left">
+        <button type="button" class="codex-tb-icon-btn" id="btn-tb-sidebar" title="展开/收起侧边栏 (Ctrl+B)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+          </svg>
+        </button>
+
+        <div class="codex-tb-nav-arrows">
+          <button type="button" class="codex-tb-icon-btn" id="btn-tb-back" title="后退" disabled>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <button type="button" class="codex-tb-icon-btn" id="btn-tb-forward" title="前进" disabled>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <nav class="codex-tb-menus" id="codex-tb-menus">
+          <div class="codex-menu-group">
+            <button type="button" class="codex-tb-menu-btn" data-codex-menu="file">文件</button>
+            <div class="codex-menu-popover" id="codex-menu-file">
+              <button type="button" class="codex-menu-item" data-menu-act="new-chat"><span>新聊天</span><kbd>Ctrl+N</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="add-project"><span>新建项目…</span></button>
+              <button type="button" class="codex-menu-item" data-menu-act="clone-github"><span>从 GitHub 克隆仓库…</span></button>
+              <div class="codex-menu-sep"></div>
+              <button type="button" class="codex-menu-item" data-menu-act="open-folder"><span>打开文件夹</span><kbd>Ctrl+O</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="quick-open"><span>快速打开文件</span><kbd>Ctrl+P</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="open-file-tab"><span>打开文件目录页</span></button>
+              <div class="codex-menu-sep"></div>
+              <button type="button" class="codex-menu-item" data-menu-act="close-tab"><span>关闭当前标签页</span><kbd>Ctrl+W</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="open-data-dir"><span>打开本地数据目录</span></button>
+              <div class="codex-menu-sep"></div>
+              <button type="button" class="codex-menu-item" data-menu-act="close-window"><span>退出 Antigravity Studio</span><kbd>Ctrl+Q</kbd></button>
+            </div>
+          </div>
+
+          <div class="codex-menu-group">
+            <button type="button" class="codex-tb-menu-btn" data-codex-menu="edit">编辑</button>
+            <div class="codex-menu-popover" id="codex-menu-edit">
+              <button type="button" class="codex-menu-item" data-menu-act="undo"><span>撤销</span><kbd>Ctrl+Z</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="redo"><span>重做</span><kbd>Ctrl+Y</kbd></button>
+              <div class="codex-menu-sep"></div>
+              <button type="button" class="codex-menu-item" data-menu-act="cut"><span>剪切</span><kbd>Ctrl+X</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="copy"><span>复制</span><kbd>Ctrl+C</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="paste"><span>粘贴</span><kbd>Ctrl+V</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="delete"><span>删除</span><kbd>Del</kbd></button>
+              <div class="codex-menu-sep"></div>
+              <button type="button" class="codex-menu-item" data-menu-act="select-all"><span>全选</span><kbd>Ctrl+A</kbd></button>
+              <div class="codex-menu-sep"></div>
+              <button type="button" class="codex-menu-item" data-menu-act="open-settings"><span>设置</span><kbd>Ctrl+,</kbd></button>
+            </div>
+          </div>
+
+          <div class="codex-menu-group">
+            <button type="button" class="codex-tb-menu-btn" data-codex-menu="view">视图</button>
+            <div class="codex-menu-popover" id="codex-menu-view">
+              <button type="button" class="codex-menu-item" data-menu-act="open-command-palette"><span>全局命令面板…</span><kbd>Ctrl+Shift+P</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="toggle-turn-nav"><span>定位对话轮次目录</span><kbd>Ctrl+Shift+O</kbd></button>
+              <div class="codex-menu-sep"></div>
+              <button type="button" class="codex-menu-item" data-menu-act="toggle-left"><span>切换左侧边栏</span><kbd>Ctrl+B</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="toggle-right"><span>切换右侧多标签栏</span><kbd>Ctrl+\</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="toggle-split"><span>并排双文件分屏阅读</span><kbd>Ctrl+Shift+\</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="open-terminal"><span>打开工作区终端</span><kbd>Ctrl+J</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="open-review"><span>打开变更审查 (Review)</span><kbd>Ctrl+Shift+G</kbd></button>
+              <div class="codex-menu-sep"></div>
+              <button type="button" class="codex-menu-item" data-menu-act="toggle-theme"><span>切换浅色 / 深色</span><kbd>Ctrl+Shift+L</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="open-language"><span>界面语言…</span></button>
+              <button type="button" class="codex-menu-item" data-menu-act="open-palette"><span>主题与自由调色盘</span></button>
+              <button type="button" class="codex-menu-item" data-menu-act="open-css"><span>Custom CSS 工作台</span></button>
+              <div class="codex-menu-sep"></div>
+              <button type="button" class="codex-menu-item" data-menu-act="zoom-in"><span>放大界面</span><kbd>Ctrl+=</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="zoom-out"><span>缩小界面</span><kbd>Ctrl+-</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="zoom-reset"><span>重置缩放</span><kbd>Ctrl+0</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="fullscreen"><span>全屏 / 还原窗口</span><kbd>F11</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="reload"><span>重新加载界面</span><kbd>F5</kbd></button>
+            </div>
+          </div>
+
+          <div class="codex-menu-group">
+            <button type="button" class="codex-tb-menu-btn" data-codex-menu="help">帮助</button>
+            <div class="codex-menu-popover" id="codex-menu-help">
+              <button type="button" class="codex-menu-item" data-menu-act="view-usage"><span>查看实时配额 (View Usage)</span><kbd>Ctrl+Shift+U</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="open-settings"><span>打开偏好设置</span><kbd>Ctrl+,</kbd></button>
+              <button type="button" class="codex-menu-item" data-menu-act="open-shortcuts"><span>快捷键一览</span><kbd>Ctrl+/</kbd></button>
+              <div class="codex-menu-sep"></div>
+              <button type="button" class="codex-menu-item" data-menu-act="view-server-log"><span>查看本地运行日志</span></button>
+              <button type="button" class="codex-menu-item" data-menu-act="about-app"><span>关于 Antigravity Studio</span></button>
+            </div>
+          </div>
+        </nav>
+      </div>
+
+      <div class="codex-tb-drag" id="codex-tb-drag"></div>
+
+      <div class="codex-tb-win-controls" id="codex-win-controls">
+        <button type="button" class="codex-win-btn" id="btn-win-min" title="最小化">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2">
+            <line x1="1.5" y1="6" x2="10.5" y2="6"></line>
+          </svg>
+        </button>
+        <button type="button" class="codex-win-btn" id="btn-win-max" title="最大化">
+          <svg id="icon-win-max" width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2">
+            <rect x="2" y="2" width="8" height="8" rx="1"></rect>
+          </svg>
+        </button>
+        <button type="button" class="codex-win-btn close" id="btn-win-close" title="关闭">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+            <line x1="2.2" y1="2.2" x2="9.8" y2="9.8"></line>
+            <line x1="9.8" y1="2.2" x2="2.2" y2="9.8"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+  <div id="app" class="claude-app">
+    <!-- ==================== Left Sidebar (Codex-inspired Minimal Structure) ==================== -->
+    <aside class="claude-sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-title">
+          <span>Antigravity</span>
+          <span class="brand-sub">Studio</span>
+        </div>
+      </div>
+
+      <!-- Primary Navigation: 新聊天 + 库 / 已排定 / 学生 / 自定义 / 视频 -->
+      <div class="sidebar-primary-nav">
+        <button class="codex-nav-item active" id="btn-new-chat" data-nav="chat">
+          <svg class="codex-nav-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+          <span>新聊天</span>
+        </button>
+
+        <button class="codex-nav-item" id="nav-library" data-nav="library">
+          <svg class="codex-nav-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1.8"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1.8"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1.8"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1.8"></rect>
+          </svg>
+          <span>库</span>
+        </button>
+
+        <button class="codex-nav-item" id="nav-skills" data-nav="skills">
+          <svg class="codex-nav-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          <span>Skills</span>
+        </button>
+
+        <button class="codex-nav-item" id="nav-scheduled" data-nav="scheduled">
+          <svg class="codex-nav-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"></circle>
+            <polyline points="12 7 12 12 15.5 14.5"></polyline>
+          </svg>
+          <span>已排定</span>
+        </button>
+
+        <button class="codex-nav-item" id="nav-study" data-nav="study">
+          <svg class="codex-nav-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10L12 5 2 10l10 5 10-5z"></path>
+            <path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"></path>
+          </svg>
+          <span>学生</span>
+        </button>
+
+        <button class="codex-nav-item" id="nav-customize" data-nav="customize">
+          <svg class="codex-nav-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2l8.5 5v10L12 22l-8.5-5V7L12 2z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <span>自定义</span>
+        </button>
+
+        <button class="codex-nav-item" id="nav-video" data-nav="video">
+          <svg class="codex-nav-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="5" width="18" height="14" rx="2.5"></rect>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+            <line x1="8" y1="5" x2="10" y2="10"></line>
+            <line x1="14" y1="5" x2="16" y2="10"></line>
+          </svg>
+          <span>视频</span>
+        </button>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <!-- Scrollable Sidebar Sections: 项目 + 最近 -->
+      <div class="sidebar-scroll">
+        <!-- Section: 项目 -->
+        <div class="sidebar-projects-block">
+          <div class="sidebar-section-header">
+            <div class="sidebar-section-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span>项目</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:2px;">
+              <button class="section-icon-btn" id="btn-clone-github" title="从 GitHub 克隆 / 拉取仓库">
+                <svg width="13.5" height="13.5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"></path>
+                </svg>
+              </button>
+              <button class="section-icon-btn" id="btn-add-project" title="添加本地项目文件夹">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="project-list" id="project-list"></div>
+        </div>
+
+        <!-- Section: 最近 -->
+        <div class="sidebar-section-header" style="margin-top: 10px;">
+          <div class="sidebar-section-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"></circle>
+              <polyline points="12 7 12 12 15 15"></polyline>
+            </svg>
+            <span>最近</span>
+          </div>
+          <span class="sidebar-running-pill" id="sidebar-running-count" style="display:none;"></span>
+        </div>
+        <div class="sidebar-conv-search" id="sidebar-conv-search">
+          <svg width="12.5" height="12.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="conv-search-input" class="conv-search-input" placeholder="搜索对话标题或正文…" autocomplete="off" />
+          <button type="button" id="btn-conv-search-clear" class="conv-search-clear" style="display:none;" title="清除搜索">✕</button>
+        </div>
+        <div class="conv-list" id="conv-list"></div>
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="profile-pill" id="btn-open-settings" title="设置（头像、外观、Custom CSS、agy CLI）">
+          <span class="avatar-circle" id="sidebar-avatar">
+            <img id="sidebar-avatar-img" class="avatar-img" alt="头像" referrerpolicy="no-referrer" style="display: none;" />
+            <span id="sidebar-avatar-fallback">A</span>
+          </span>
+          <div class="profile-meta">
+            <div class="profile-name" id="sidebar-profile-name">Antigravity CLI</div>
+            <div class="cli-status-line">
+              <span class="status-dot" id="cli-status-dot"></span>
+              <span id="cli-status-text">正在检测 agy…</span>
+            </div>
+          </div>
+        </button>
+        <div class="sidebar-footer-actions">
+          <div class="claude-dropdown" id="dropdown-palette">
+            <button class="icon-btn" id="btn-palette-popover" title="切换主题配色 / 自定义颜色">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="13.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"></circle>
+                <circle cx="17.5" cy="10.5" r="1.2" fill="currentColor" stroke="none"></circle>
+                <circle cx="8.5" cy="7.5" r="1.2" fill="currentColor" stroke="none"></circle>
+                <circle cx="6.5" cy="12.5" r="1.2" fill="currentColor" stroke="none"></circle>
+                <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.6-.7 1.6-1.6 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.6 1.6-1.6H16c3.3 0 6-2.7 6-6 0-4.9-4.5-8.6-10-8.6z"></path>
+              </svg>
+            </button>
+            <div class="claude-popover popover-left popover-palette" id="popover-palette">
+              <div class="popover-group-label">快速切换主题色</div>
+              <div class="palette-quick-grid" id="palette-quick-grid"></div>
+              <div class="popover-divider"></div>
+              <button type="button" class="popover-item" id="act-open-customize-colors">
+                <div class="popover-item-main">
+                  <span class="popover-item-title">进入自由调色盘…</span>
+                  <span class="popover-item-desc">自定义画布、侧栏、强调色与气泡颜色</span>
+                </div>
+              </button>
+            </div>
+          </div>
+          <button class="icon-btn" id="btn-toggle-theme" title="切换浅色 / 深色主题">
+            <svg id="theme-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==================== Rounded Elevated Main + Right Stage Card (Codex Style) ==================== -->
+    <div class="stage-card-shell" id="stage-card-shell">
+    <!-- ==================== Main Chat Stage ==================== -->
+    <main class="claude-stage is-empty" id="stage">
+      <!-- Top Header -->
+      <header class="stage-topbar">
+        <div class="topbar-left">
+          <div class="chat-header-title" id="chat-header-title" title="点击重命名">新聊天</div>
+          <input id="chat-header-rename-input" class="chat-header-rename-input" type="text" style="display: none;" />
+        </div>
+
+        <div class="topbar-right">
+          <button class="topbar-pill-btn" id="btn-topbar-export-md" style="display: none;" title="将当前对话导出为 Markdown (.md) 笔记">
+            <svg width="13.5" height="13.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>导出 .md</span>
+          </button>
+          <button class="topbar-pill-btn" id="btn-topbar-artifact" style="display: none;">
+            <span>Artifact</span>
+          </button>
+          <button class="icon-btn right-pane-toggle-btn" id="btn-toggle-right-pane" title="展开/收起右侧工作区面板 (Ctrl+\)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+              <line x1="15" y1="3" x2="15" y2="21"></line>
+            </svg>
+            <span class="right-pane-changes-dot" id="topbar-changes-dot" style="display: none;"></span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Floating Conversation Turn Minimap & Timeline Popover -->
+      <aside class="turn-nav-dock" id="turn-nav-dock" style="display: none;" aria-label="对话时间轴定位">
+        <div class="turn-nav-rail" id="turn-nav-rail" title="悬停查看对话目录 · 点击快速定位"></div>
+        <div class="turn-nav-card" id="turn-nav-card" role="dialog" aria-label="对话轮次目录">
+          <div class="turn-nav-header">
+            <div class="turn-nav-title" id="turn-nav-title"></div>
+            <div class="turn-nav-meta" id="turn-nav-meta"></div>
+          </div>
+          <div class="turn-nav-list" id="turn-nav-list"></div>
+        </div>
+      </aside>
+
+      <!-- Scrollable Conversation / Landing Area -->
+      <div class="claude-scroll-area" id="scroll-area">
+        <!-- Empty State Hero -->
+        <section class="empty-hero" id="empty-hero">
+          <div class="greeting-row">
+            <!-- Antigravity Flowing Multicolor Arch Emblem -->
+            <svg class="agi-emblem" viewBox="34 36 188 188" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Antigravity">
+              <defs>
+                <clipPath id="heroAgArchClip">
+                  <path d="M 128 44
+                           C 146 44, 159 67, 173 114
+                           C 185 154, 197 183, 211 198
+                           C 219 206, 214 216, 202 214
+                           C 187 212, 176 194, 165 173
+                           C 153 149, 142 137, 128 137
+                           C 114 137, 103 149, 91 173
+                           C 80 194, 69 212, 54 214
+                           C 42 216, 37 206, 45 198
+                           C 59 183, 71 154, 83 114
+                           C 97 67, 110 44, 128 44 Z" />
+                </clipPath>
+                <linearGradient id="heroAgBlue" x1="128" y1="40" x2="128" y2="220" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#4A8DF8" />
+                  <stop offset="55%" stop-color="#357DF6" />
+                  <stop offset="100%" stop-color="#2268EA" />
+                </linearGradient>
+                <radialGradient id="heroAgGreen" cx="84" cy="100" r="78" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#34A853" stop-opacity="1" />
+                  <stop offset="48%" stop-color="#34A853" stop-opacity="0.82" />
+                  <stop offset="100%" stop-color="#34A853" stop-opacity="0" />
+                </radialGradient>
+                <radialGradient id="heroAgYellow" cx="112" cy="54" r="66" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#FBBC04" stop-opacity="1" />
+                  <stop offset="46%" stop-color="#F9AB00" stop-opacity="0.85" />
+                  <stop offset="100%" stop-color="#FBBC04" stop-opacity="0" />
+                </radialGradient>
+                <radialGradient id="heroAgRed" cx="152" cy="70" r="74" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#EA4335" stop-opacity="1" />
+                  <stop offset="48%" stop-color="#EA4335" stop-opacity="0.86" />
+                  <stop offset="100%" stop-color="#EA4335" stop-opacity="0" />
+                </radialGradient>
+                <radialGradient id="heroAgCore" cx="128" cy="144" r="76" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.96" />
+                  <stop offset="62%" stop-color="#2F76F2" stop-opacity="0.55" />
+                  <stop offset="100%" stop-color="#2F76F2" stop-opacity="0" />
+                </radialGradient>
+              </defs>
+              <g clip-path="url(#heroAgArchClip)">
+                <rect x="30" y="34" width="196" height="190" fill="url(#heroAgBlue)" />
+                <rect x="30" y="34" width="196" height="190" fill="url(#heroAgGreen)" />
+                <rect x="30" y="34" width="196" height="190" fill="url(#heroAgYellow)" />
+                <rect x="30" y="34" width="196" height="190" fill="url(#heroAgRed)" />
+                <rect x="30" y="34" width="196" height="190" fill="url(#heroAgCore)" />
+              </g>
+            </svg>
+            <h1 class="greeting-heading" id="greeting-text" title="点击换一句问候"></h1>
+          </div>
+
+          <div class="cli-onboarding-banner" id="cli-missing-banner" style="display: none;">
+            <div>
+              <strong>尚未检测到 <code>agy</code> CLI：</strong>
+              安装命令 <code>irm https://antigravity.google/cli/install.ps1 | iex</code>
+            </div>
+            <button class="topbar-pill-btn" id="btn-copy-install">复制安装命令</button>
+          </div>
+        </section>
+
+        <!-- Active Thread Messages -->
+        <div class="messages-container" id="messages-container"></div>
+
+        <!-- Centered / Sticky Bottom Composer (Codex-Minimal Dual-Layer Shell) -->
+        <div class="composer-dock" id="composer-dock">
+          <div class="composer-shell">
+            <!-- Top Attached Context Bar: Only shown when user explicitly selects a workspace/project -->
+            <div class="composer-context-bar" id="composer-context-bar">
+              <div class="claude-dropdown" id="dropdown-cwd">
+                <button type="button" class="ctx-bar-btn" id="btn-cwd-picker" title="切换项目 / 工作区目录">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  <span id="cwd-chip-label">选择项目</span>
+                </button>
+                <div class="claude-popover popover-left popover-cwd" id="popover-cwd"></div>
+              </div>
+              <button type="button" class="ctx-bar-clear-btn" id="btn-clear-workspace" title="退出当前项目，回到默认工作区">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Slash Skill Autocomplete Menu (pops up when typing `/`) -->
+            <div class="composer-slash-menu" id="composer-slash-menu" style="display: none;"></div>
+
+            <div class="claude-composer" id="composer-card">
+              <!-- Hidden Native File Input -->
+              <input type="file" id="hidden-file-input" multiple style="display: none;" />
+
+              <!-- Attached Files / Image Thumbnails Preview Strip -->
+              <div class="composer-attachments" id="composer-attachments" style="display: none;"></div>
+
+              <textarea
+                id="composer-input"
+                class="composer-textarea"
+                rows="2"
+                placeholder="随心输入（支持 @ 引用文件 · / 快捷指令与 Skills）"
+              ></textarea>
+
+              <div class="composer-toolbar">
+                <div class="composer-tools-left">
+                  <!-- Minimal Borderless `+` Action Menu -->
+                  <div class="claude-dropdown" id="dropdown-attach">
+                    <button type="button" class="attach-plus-btn" id="btn-attach-menu" title="添加文件、图像、搜索或更多工具">
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                    </button>
+                    <div class="claude-popover popover-left popover-plus-menu" id="popover-attach">
+                      <button type="button" class="plus-menu-item" id="act-upload-file">
+                        <span class="plus-menu-icon" style="color: var(--text-secondary);">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                          </svg>
+                        </span>
+                        <span class="plus-menu-title">添加照片和文件</span>
+                        <span class="plus-menu-desc">从计算机上传</span>
+                      </button>
+
+                      <button type="button" class="plus-menu-item" id="act-pick-workspace-file">
+                        <span class="plus-menu-icon" style="color: #8C8A82;">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                          </svg>
+                        </span>
+                        <span class="plus-menu-title">引用工作区文件</span>
+                        <span class="plus-menu-desc">浏览并搜索你的文件</span>
+                      </button>
+
+                      <button type="button" class="plus-menu-item" id="act-dispatch-skill">
+                        <span class="plus-menu-icon" style="color: var(--accent);">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                          </svg>
+                        </span>
+                        <span class="plus-menu-title">调度 Skill</span>
+                        <span class="plus-menu-desc">输入 / 随时挂载仓库技能</span>
+                      </button>
+
+                      <div class="popover-divider"></div>
+
+                      <button type="button" class="plus-menu-item" data-cap-toggle="create_image">
+                        <span class="plus-menu-icon" style="color: #3B82F6;">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5" fill="#F59E0B" stroke="none"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                          </svg>
+                        </span>
+                        <span class="plus-menu-title">创建图像</span>
+                        <span class="plus-menu-desc">可视化呈现任何内容</span>
+                        <span class="plus-menu-check" data-cap-check="create_image"></span>
+                      </button>
+
+                      <button type="button" class="plus-menu-item" data-cap-toggle="web_search">
+                        <span class="plus-menu-icon" style="color: #0EA5E9;">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="9"></circle>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <path d="M12 3a14.5 14.5 0 0 1 0 18a14.5 14.5 0 0 1 0-18"></path>
+                          </svg>
+                        </span>
+                        <span class="plus-menu-title">网页搜索</span>
+                        <span class="plus-menu-desc">查找实时新闻和信息</span>
+                        <span class="plus-menu-check" data-cap-check="web_search"></span>
+                      </button>
+
+                      <button type="button" class="plus-menu-item" id="act-work-in-project">
+                        <span class="plus-menu-icon" style="color: var(--text-primary);">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                          </svg>
+                        </span>
+                        <span class="plus-menu-title">在项目中工作</span>
+                        <span class="plus-menu-desc">在项目中开始聊天</span>
+                      </button>
+
+                      <button type="button" class="plus-menu-item" data-cap-toggle="deep_research">
+                        <span class="plus-menu-icon" style="color: #2563EB;">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 10l12-5 4 6-12 5z"></path>
+                            <path d="M9 14l-2 7"></path>
+                            <path d="M13 13l3 8"></path>
+                          </svg>
+                        </span>
+                        <span class="plus-menu-title">深度研究</span>
+                        <span class="plus-menu-desc">获取详细报告</span>
+                        <span class="plus-menu-check" data-cap-check="deep_research"></span>
+                      </button>
+
+                      <button type="button" class="plus-menu-item" id="act-open-sketchpad">
+                        <span class="plus-menu-icon" style="color: #10B981;">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 17c3-9 5-9 7 0s4 9 7 0c1-3 2-5 4-5"></path>
+                          </svg>
+                        </span>
+                        <span class="plus-menu-title">绘图</span>
+                        <span class="plus-menu-desc">绘制并附加图像</span>
+                      </button>
+
+                      <button type="button" class="plus-menu-item" data-cap-toggle="think_deeper">
+                        <span class="plus-menu-icon" style="color: var(--accent);">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9.5 4a3.5 3.5 0 0 0-3.5 3.5c0 .7.2 1.4.6 2A3.5 3.5 0 0 0 7 16a3.5 3.5 0 0 0 5 2.5"></path>
+                            <path d="M14.5 4a3.5 3.5 0 0 1 3.5 3.5c0 .7-.2 1.4-.6 2A3.5 3.5 0 0 1 17 16a3.5 3.5 0 0 1-5 2.5"></path>
+                            <line x1="12" y1="4" x2="12" y2="19"></line>
+                          </svg>
+                        </span>
+                        <span class="plus-menu-title">思考一下</span>
+                        <span class="plus-menu-desc">获取详细解答</span>
+                        <span class="plus-menu-check" data-cap-check="think_deeper"></span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Borderless Mode Trigger (e.g. 请求批准) -->
+                  <div class="claude-dropdown" id="dropdown-mode">
+                    <button type="button" class="minimal-text-trigger" id="btn-mode-picker" title="agy 执行权限模式 (--mode)">
+                      <span id="mode-picker-label">请求批准</span>
+                    </button>
+                    <div class="claude-popover popover-left" id="popover-mode"></div>
+                  </div>
+
+                  <!-- Active Capability & Mounted Skill Pills (only shown when active) -->
+                  <div class="active-cap-pills" id="active-cap-pills"></div>
+                  <div class="active-cap-pills" id="active-skill-pills"></div>
+                  <!-- Subtle Live Context Window Meter -->
+                  <div class="ctx-meter-pill" id="context-meter-pill" style="display: none;"></div>
+                </div>
+
+                <div class="composer-tools-right">
+                  <!-- Clean Inline Model & Effort Pair (like "6.1 Sol 轻度") -->
+                  <div class="model-effort-inline">
+                    <div class="claude-dropdown" id="dropdown-model">
+                      <button type="button" class="claude-picker-btn minimal-model-btn" id="btn-model-picker" title="选择模型">
+                        <span id="model-picker-label">agy Default</span>
+                      </button>
+                      <div class="claude-popover popover-right popover-models" id="popover-model"></div>
+                    </div>
+
+                    <div class="claude-dropdown" id="dropdown-effort">
+                      <button type="button" class="claude-effort-btn minimal-effort-btn" id="btn-effort-picker" title="调整推理深度 (Effort)">
+                        <span id="effort-picker-label">Auto</span>
+                      </button>
+                      <div class="claude-popover popover-right popover-compact" id="popover-effort"></div>
+                    </div>
+                  </div>
+
+                  <button class="send-btn send-btn-circle" id="btn-send" disabled title="发送 (Enter)">
+                    <svg id="icon-send" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="12" y1="19" x2="12" y2="5"></line>
+                      <polyline points="5 12 12 5 19 12"></polyline>
+                    </svg>
+                    <svg id="icon-stop" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                      <rect x="5" y="5" width="14" height="14" rx="2"></rect>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="composer-disclaimer" id="session-meta-bar" style="display: none;"></div>
+        </div>
+      </div>
+
+      <!-- ==================== Feature View: 库 (Library) ==================== -->
+      <section class="feature-view" id="view-library" style="display: none;">
+        <div class="feature-inner">
+          <div class="feature-header">
+            <div>
+              <h1 class="feature-title">库</h1>
+              <p class="feature-subtitle">汇总你上传的图片、手绘草图、附件以及对话中生成的 HTML/SVG Artifact 与代码产物</p>
+            </div>
+            <div class="segmented-tabs" id="library-filter-tabs">
+              <button type="button" class="seg-tab active" data-lib-filter="all">全部</button>
+              <button type="button" class="seg-tab" data-lib-filter="artifact">Artifact</button>
+              <button type="button" class="seg-tab" data-lib-filter="image">图片</button>
+              <button type="button" class="seg-tab" data-lib-filter="file">文件</button>
+            </div>
+          </div>
+          <div class="library-grid" id="library-grid"></div>
+        </div>
+      </section>
+
+      <!-- ==================== Feature View: Skills (Skill Repository & Smart Dispatcher) ==================== -->
+      <section class="feature-view" id="view-skills" style="display: none;">
+        <div class="feature-inner">
+          <div class="feature-header skill-hub-header">
+            <div class="feature-header-text">
+              <h1 class="feature-title">Skill 仓库</h1>
+              <p class="feature-subtitle">统一管理个人与本机 <code>SKILL.md</code> 技能：支持对话中输入 <code>/</code> 随时点名、按触发词自动路由调度，以及绑定「已排定」定时执行</p>
+            </div>
+            <div class="skill-hub-header-actions">
+              <label class="skill-auto-master-pill" title="开启后发送消息时自动根据触发词匹配最合适的 Skill">
+                <svg class="ui-line-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+                <span class="skill-auto-master-text">自动调度</span>
+                <input type="checkbox" id="toggle-auto-dispatch-skills" class="skill-switch-input" checked />
+                <span class="skill-switch-track" aria-hidden="true"></span>
+              </label>
+              <button type="button" class="topbar-pill-btn skill-header-btn" id="btn-open-skill-import">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span>导入 Skill</span>
+              </button>
+              <button type="button" class="primary-btn skill-header-btn" id="btn-new-skill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>新建 Skill</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Compact Filter, Search & Live Router Preview Tester -->
+          <div class="feature-card skill-hub-toolbar-card">
+            <div class="skill-hub-controls-row">
+              <div class="segmented-tabs skill-filter-tabs" id="skills-filter-tabs">
+                <button type="button" class="seg-tab active" data-skill-filter="all">全部</button>
+                <button type="button" class="seg-tab" data-skill-filter="repo">我的仓库</button>
+                <button type="button" class="seg-tab" data-skill-filter="external">本机发现</button>
+                <button type="button" class="seg-tab" data-skill-filter="auto">自动调度</button>
+                <button type="button" class="seg-tab" data-skill-filter="disabled">已停用</button>
+              </div>
+              <div class="skill-search-box">
+                <svg class="skill-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input id="skills-search-input" class="skill-search-input" type="text" placeholder="搜索 Skill 名称、/slug 或触发词…" autocomplete="off" />
+              </div>
+            </div>
+
+            <div class="skill-router-bar">
+              <div class="skill-router-badge-wrap">
+                <span class="skill-router-label">
+                  <svg class="ui-line-icon" width="13.5" height="13.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="6" cy="6" r="2.5"></circle>
+                    <circle cx="18" cy="18" r="2.5"></circle>
+                    <path d="M8.5 6H15a3 3 0 0 1 3 3v6.5"></path>
+                    <polyline points="15 13 18 15.5 21 13"></polyline>
+                  </svg>
+                  <span>调度试算</span>
+                </span>
+                <span class="skill-router-subhint">输入示例消息验证自动命中</span>
+              </div>
+              <div class="skill-router-input-group">
+                <input id="skill-router-test-input" class="form-input skill-router-input" type="text" placeholder="例如：帮我排查 Python 报错，或输入 /ui-polish…" autocomplete="off" />
+                <button type="button" class="topbar-pill-btn skill-router-btn" id="btn-skill-router-test">测试路由</button>
+              </div>
+            </div>
+            <div class="skill-router-result" id="skill-router-test-result" style="display:none;"></div>
+            <div class="skill-hub-meta-row" id="skills-repo-meta">正在加载 Skill 仓库…</div>
+          </div>
+
+          <div class="skills-repo-grid" id="skills-repo-grid"></div>
+        </div>
+      </section>
+
+      <!-- ==================== Feature View: 已排定 (Scheduled Tasks) ==================== -->
+      <section class="feature-view" id="view-scheduled" style="display: none;">
+        <div class="feature-inner">
+          <div class="feature-header">
+            <div class="feature-header-text">
+              <div class="feature-title-row">
+                <h1 class="feature-title">已排定</h1>
+                <span class="feature-status-pill" id="sched-summary-pill">本地守护就绪</span>
+              </div>
+              <p class="feature-subtitle">由本地后端守护线程按计划自动调用 <code>agy</code> CLI 执行，结果自动保存为对话记录</p>
+            </div>
+          </div>
+
+          <div class="feature-card sched-create-card">
+            <div class="feature-card-head">
+              <div class="feature-card-head-left">
+                <span class="feature-card-icon" aria-hidden="true">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <polyline points="12 7 12 12 15.5 14"></polyline>
+                  </svg>
+                </span>
+                <div class="feature-card-title" style="margin:0;">新建排定任务</div>
+              </div>
+              <span class="feature-card-kicker">到期自动发起对话</span>
+            </div>
+
+            <div class="schedule-form-grid">
+              <div class="form-field">
+                <label for="sched-name">任务名称</label>
+                <input id="sched-name" class="form-input" type="text" placeholder="例如：每日 AI 科技早报 / 代码仓库健康巡检" />
+              </div>
+              <div class="form-field">
+                <label>触发频率</label>
+                <div class="sched-freq-row">
+                  <select id="sched-type" class="sr-only-select" aria-hidden="true" tabindex="-1">
+                    <option value="daily">每天定时</option>
+                    <option value="interval">固定间隔</option>
+                  </select>
+                  <div class="segmented-tabs sched-type-tabs" id="sched-type-tabs" role="tablist" aria-label="触发频率">
+                    <button type="button" class="seg-tab active" data-sched-type="daily">每天定时</button>
+                    <button type="button" class="seg-tab" data-sched-type="interval">固定间隔</button>
+                  </div>
+                  <div class="sched-input-pill" id="sched-daily-wrap">
+                    <svg class="sched-input-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="9"></circle>
+                      <polyline points="12 7 12 12 15.5 14"></polyline>
+                    </svg>
+                    <input id="sched-daily-time" class="sched-bare-input" type="time" value="09:00" />
+                  </div>
+                  <div class="sched-input-pill" id="sched-interval-wrap" style="display:none;">
+                    <input id="sched-interval-mins" class="sched-bare-input" type="number" min="1" value="60" placeholder="60" />
+                    <span class="sched-unit-tag">分钟</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-field sched-field-block">
+              <div class="form-label-row">
+                <label for="sched-skill-trigger">绑定 Skill</label>
+                <span class="form-label-opt">可选 · 到点执行时自动加载该 Skill 指令</span>
+              </div>
+              <select id="sched-skill-select" class="sr-only-select" aria-hidden="true" tabindex="-1">
+                <option value="">不绑定特定 Skill（走默认或自动调度）</option>
+              </select>
+              <div class="studio-select" id="sched-skill-picker">
+                <button type="button" class="studio-select-trigger" id="sched-skill-trigger" aria-haspopup="listbox" aria-expanded="false">
+                  <span class="studio-select-value is-placeholder" id="sched-skill-trigger-label">不绑定特定 Skill（走默认或自动调度）</span>
+                  <svg class="studio-select-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+                <div class="studio-select-menu" id="sched-skill-menu" role="listbox"></div>
+              </div>
+            </div>
+
+            <div class="form-field sched-field-block">
+              <label for="sched-prompt">执行提示词（Prompt）</label>
+              <textarea id="sched-prompt" class="feature-textarea" rows="3" placeholder="输入到期时自动发送给 agy 的完整指令…"></textarea>
+            </div>
+
+            <div class="feature-card-footer">
+              <span class="form-hint">默认沿用当前模型、执行权限与工作区目录</span>
+              <button type="button" class="primary-btn" id="btn-create-schedule">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>创建排定任务</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="schedule-list" id="schedule-list"></div>
+        </div>
+      </section>
+
+      <!-- ==================== Feature View: 学生 (Study & Learning Mode) ==================== -->
+      <section class="feature-view" id="view-study" style="display: none;">
+        <div class="feature-inner">
+          <div class="feature-header">
+            <div>
+              <h1 class="feature-title">学生 · 深度学习空间</h1>
+              <p class="feature-subtitle">切换为启发式导师人格：不直接堆砌标准答案，通过提问、类比与互动测验帮你真正学懂</p>
+            </div>
+          </div>
+
+          <div class="preset-card-grid" id="study-mode-cards">
+            <button type="button" class="preset-card active" data-study-mode="study_socratic">
+              <div class="preset-card-title">苏格拉底启发引导</div>
+              <div class="preset-card-desc">通过循序渐进的追问引导你自己推导出结论，适合算法、数学与系统设计</div>
+            </button>
+            <button type="button" class="preset-card" data-study-mode="study_explain">
+              <div class="preset-card-title">概念精讲与直觉类比</div>
+              <div class="preset-card-desc">用日常类比和清晰阶梯拆解晦涩概念，结尾附带核心知识速记清单</div>
+            </button>
+            <button type="button" class="preset-card" data-study-mode="study_quiz">
+              <div class="preset-card-title">出题测验与逐题批改</div>
+              <div class="preset-card-desc">按知识点生成由浅入深的练习题，等你作答后逐题点评错因与思路</div>
+            </button>
+            <button type="button" class="preset-card" data-study-mode="study_paper">
+              <div class="preset-card-title">论文 / 教材章节精读</div>
+              <div class="preset-card-desc">提炼研究问题、核心推导、实验结论与方法局限，生成结构化笔记</div>
+            </button>
+          </div>
+
+          <div class="feature-card" style="margin-top: 16px;">
+            <div class="feature-card-title">开始一次学习对话</div>
+            <textarea id="study-topic-input" class="feature-textarea" rows="3" placeholder="输入你想攻克的知识点、题目或论文主题，例如：帮我从直觉理解 Transformer 的注意力机制…"></textarea>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;">
+              <span class="form-hint">启动后会自动激活对应的学习导师指令并进入对话页</span>
+              <button type="button" class="primary-btn" id="btn-start-study">开始学习</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== Feature View: 自定义 (Customizations Hub) ==================== -->
+      <section class="feature-view" id="view-customize" style="display: none;">
+        <div class="feature-inner">
+          <div class="feature-header">
+            <div>
+              <h1 class="feature-title">自定义</h1>
+              <p class="feature-subtitle">统一管理全局系统指令、外观与字体、实时 CSS 样式表，以及本机已加载的 Skills / Rules / Plugins</p>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-card-title">全局个人偏好指令（Custom Instructions）</div>
+            <p class="form-hint" style="margin:0 0 8px;">保存后将自动注入每次 <code>agy</code> 对话中，用于固定回答语言、代码规范或角色风格。</p>
+            <textarea id="custom-instructions-input" class="feature-textarea" rows="4" placeholder="例如：默认使用简洁中文回答；所有 Python 代码遵循类型注解；修改文件前先简述思路…"></textarea>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;">
+              <span class="form-hint" id="custom-inst-status">已同步本地配置</span>
+              <button type="button" class="primary-btn" id="btn-save-custom-inst">保存全局指令</button>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+              <div class="feature-card-title" style="margin:0;">主题配色与自由调色盘</div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="segmented-tabs" id="cust-theme-tabs">
+                  <button type="button" class="seg-tab active" data-cust-theme="light">浅色</button>
+                  <button type="button" class="seg-tab" data-cust-theme="dark">深色</button>
+                </div>
+                <button type="button" class="topbar-pill-btn" id="btn-reset-colors">恢复默认色</button>
+              </div>
+            </div>
+
+            <div class="theme-preset-grid" id="theme-preset-grid"></div>
+
+            <div class="custom-color-grid">
+              <label class="color-picker-tile">
+                <input type="color" id="pick-color-accent" data-custom-color="accent" />
+                <div class="color-picker-meta">
+                  <span class="color-picker-name">主题强调色</span>
+                  <span class="color-picker-hex" id="hex-color-accent">#C96442</span>
+                </div>
+              </label>
+
+              <label class="color-picker-tile">
+                <input type="color" id="pick-color-bg-main" data-custom-color="bg_main" />
+                <div class="color-picker-meta">
+                  <span class="color-picker-name">主画布背景</span>
+                  <span class="color-picker-hex" id="hex-color-bg-main">#FAF9F5</span>
+                </div>
+              </label>
+
+              <label class="color-picker-tile">
+                <input type="color" id="pick-color-bg-sidebar" data-custom-color="bg_sidebar" />
+                <div class="color-picker-meta">
+                  <span class="color-picker-name">侧边栏背景</span>
+                  <span class="color-picker-hex" id="hex-color-bg-sidebar">#F3F1E9</span>
+                </div>
+              </label>
+
+              <label class="color-picker-tile">
+                <input type="color" id="pick-color-user-bubble" data-custom-color="bg_user_bubble" />
+                <div class="color-picker-meta">
+                  <span class="color-picker-name">用户气泡背景</span>
+                  <span class="color-picker-hex" id="hex-color-user-bubble">#F0EEE6</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="customize-two-col">
+            <div class="feature-card">
+              <div class="feature-card-title">字体风格与样式表</div>
+              <div class="form-field" style="margin-bottom:14px;">
+                <label>全局排版字体（同步作用于品牌标题、问候语与正文）</label>
+                <div class="font-preset-grid" id="cust-font-grid"></div>
+              </div>
+              <button type="button" class="topbar-pill-btn" id="btn-open-css-from-customize">打开 Custom CSS 实时工作台</button>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-card-title">本机 Antigravity 扩展概览</div>
+              <div id="cust-discovered-summary" class="cust-discovered-list">正在扫描本机配置…</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== Feature View: 视频 (Video & Motion Studio) ==================== -->
+      <section class="feature-view" id="view-video" style="display: none;">
+        <div class="feature-inner">
+          <div class="feature-header">
+            <div>
+              <h1 class="feature-title">视频 · 视听分析与动态演示</h1>
+              <p class="feature-subtitle">上传本地视频/音频进行内容总结与字幕时间轴提取，或创作专业分镜脚本与可交互 HTML5 动画演示</p>
+            </div>
+          </div>
+
+          <div class="video-dropzone" id="video-dropzone">
+            <input type="file" id="video-file-input" accept="video/*,audio/*" style="display:none;" />
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent);">
+              <rect x="3" y="5" width="18" height="14" rx="2.5"></rect>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+              <line x1="8" y1="5" x2="10" y2="10"></line>
+              <line x1="14" y1="5" x2="16" y2="10"></line>
+            </svg>
+            <div style="font-size:14.5px;font-weight:500;color:var(--text-primary);">点击选择或拖拽视频 / 音频文件</div>
+            <div class="form-hint">支持 MP4 / MOV / WebM / MP3 / WAV（≤ 25 MB），上传后将自动附加到新对话由 agy 分析</div>
+          </div>
+
+          <div class="preset-card-grid" style="margin-top: 16px;" id="video-mode-cards">
+            <button type="button" class="preset-card active" data-video-mode="video_motion">
+              <div class="preset-card-title">交互式动画演示（Artifact 播放）</div>
+              <div class="preset-card-desc">让 agy 生成带播放/暂停与进度控制的单页 HTML/SVG 动画，直接在右侧面板播放</div>
+            </button>
+            <button type="button" class="preset-card" data-video-mode="video_script">
+              <div class="preset-card-title">短视频 / 产品宣传分镜脚本</div>
+              <div class="preset-card-desc">生成分镜头景别、画面描述、旁白口播与节奏时长表</div>
+            </button>
+            <button type="button" class="preset-card" data-video-mode="video_analyze">
+              <div class="preset-card-title">视频要点与时间轴纪要</div>
+              <div class="preset-card-desc">结合上传的视频/音频或网页视频链接提炼结构化笔记与关键时间点</div>
+            </button>
+          </div>
+
+          <div class="feature-card" style="margin-top: 16px;">
+            <div class="feature-card-title">输入视频创作或分析需求</div>
+            <textarea id="video-prompt-input" class="feature-textarea" rows="3" placeholder="例如：制作一个 15 秒的产品介绍交互动画展示 Antigravity Studio 的工作流，或总结我刚刚上传的演示视频…"></textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+              <button type="button" class="primary-btn" id="btn-start-video">开始生成 / 分析</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ==================== Right Dynamic Multi-Tab Pane (Antigravity Style) ==================== -->
+    <aside class="side-pane" id="side-pane">
+      <div class="side-pane-resizer" id="side-pane-resizer" title="拖拽调整宽度"></div>
+
+      <!-- Ultra-Clean Dynamic Tab Bar: [Open File/Tool Tabs...] [+] ... [◫] [⋯] [×] -->
+      <div class="side-pane-header rp-dynamic-header">
+        <div class="rp-tab-strip" id="rp-dynamic-tabs"></div>
+        <div class="rp-header-actions">
+          <button type="button" class="rp-mini-text-btn accent" id="btn-rp-file-save" title="保存修改 (Ctrl+S)" style="display: none;">保存</button>
+          <button type="button" class="icon-btn rp-mini-icon-btn" id="btn-rp-file-edit" title="切换轻量编辑模式" style="display: none;">
+            <svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+          </button>
+          <button type="button" class="icon-btn rp-mini-icon-btn" id="btn-rp-toggle-split" title="并排同时阅读两个文件 (Ctrl+Shift+\)" style="display: none;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+              <line x1="12" y1="3" x2="12" y2="21"></line>
+            </svg>
+          </button>
+
+          <button type="button" class="icon-btn rp-mini-icon-btn" id="btn-rp-focus-wide" title="全宽专注阅读 / 恢复对话分栏" style="display: none;">
+            <svg id="icon-rp-focus-wide" width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <polyline points="9 21 3 21 3 15"></polyline>
+              <line x1="21" y1="3" x2="14" y2="10"></line>
+              <line x1="3" y1="21" x2="10" y2="14"></line>
+            </svg>
+          </button>
+
+          <div class="rp-more-wrap" id="rp-file-more-wrap" style="display: none;">
+            <button type="button" class="icon-btn rp-mini-icon-btn" id="btn-rp-file-more" title="文件操作与信息">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="5" cy="12" r="1.7"></circle>
+                <circle cx="12" cy="12" r="1.7"></circle>
+                <circle cx="19" cy="12" r="1.7"></circle>
+              </svg>
+            </button>
+            <div class="rp-more-popover" id="rp-file-more-popover">
+              <div class="rp-more-file-head">
+                <div class="rp-more-file-path" id="rp-reader-path"></div>
+                <div class="rp-more-file-meta" id="rp-reader-meta"></div>
+              </div>
+              <div class="codex-menu-sep"></div>
+              <button type="button" class="codex-menu-item" id="btn-rp-menu-edit" style="display: none;"><span>编辑文件</span><kbd>Ctrl+S 保存</kbd></button>
+              <button type="button" class="codex-menu-item" id="btn-rp-reader-md-toggle" style="display: none;"><span>渲染 / 源码</span></button>
+              <button type="button" class="codex-menu-item" id="btn-rp-reader-cite"><span>@ 引用到对话输入框</span></button>
+              <button type="button" class="codex-menu-item" id="btn-rp-reader-copy"><span>复制文件内容</span></button>
+              <div class="codex-menu-sep"></div>
+              <button type="button" class="codex-menu-item" id="btn-rp-menu-split"><span>并排阅读两个文件</span><kbd>Ctrl+Shift+\</kbd></button>
+              <button type="button" class="codex-menu-item" id="btn-rp-menu-focus"><span>全宽专注阅读</span></button>
+              <div class="codex-menu-sep"></div>
+              <button type="button" class="codex-menu-item" id="btn-rp-reader-external"><span>用系统默认应用打开</span></button>
+              <button type="button" class="codex-menu-item" id="btn-rp-reader-reload"><span>重新读取文件</span></button>
+            </div>
+          </div>
+
+          <button type="button" class="icon-btn rp-mini-icon-btn" id="btn-close-pane" title="收起侧栏 (Ctrl+\)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== View 0: Antigravity New-Tab Launcher (+) ===== -->
+      <div class="side-pane-body rp-launcher-scroll" id="pane-launcher-body" style="display: none;">
+        <div class="rp-launcher-inner">
+          <div class="rp-launcher-search-box">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="rp-launcher-search" class="rp-launcher-search-input" placeholder="搜索工作区文件并新开标签页..." autocomplete="off" />
+          </div>
+
+          <!-- Instant File Search Results (Shown only when typing) -->
+          <div class="rp-launcher-search-results" id="rp-launcher-search-results" style="display: none;"></div>
+
+          <!-- Default Antigravity Dispatcher Menu + Workspace Directory Tree -->
+          <div id="rp-launcher-default">
+            <div class="rp-launcher-actions">
+              <button type="button" class="rp-launcher-action-row" data-rp-launch="changes">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <path d="M9 15l2 2 4-4"></path>
+                </svg>
+                <span class="rp-launcher-action-label">Review</span>
+                <span class="rp-launcher-action-sub">变更审查</span>
+                <span class="rp-badge" id="rp-changes-badge" style="display: none;">0</span>
+              </button>
+
+              <button type="button" class="rp-launcher-action-row" data-rp-launch="explorer">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                  <polyline points="13 2 13 9 20 9"></polyline>
+                </svg>
+                <span class="rp-launcher-action-label">Open File</span>
+                <span class="rp-launcher-action-sub">独立文件目录页</span>
+              </button>
+
+              <button type="button" class="rp-launcher-action-row" data-rp-launch="terminal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="16" rx="2.5"></rect>
+                  <polyline points="7 9 10 12 7 15"></polyline>
+                  <line x1="12" y1="15" x2="17" y2="15"></line>
+                </svg>
+                <span class="rp-launcher-action-label">Terminal</span>
+                <span class="rp-launcher-action-sub">工作区终端</span>
+              </button>
+
+              <button type="button" class="rp-launcher-action-row" data-rp-launch="artifact">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                <span class="rp-launcher-action-label">Artifact</span>
+                <span class="rp-launcher-action-sub">产物预览</span>
+              </button>
+
+              <button type="button" class="rp-launcher-action-row" data-rp-launch="css">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="13.5" cy="6.5" r="0.5" fill="currentColor"></circle>
+                  <circle cx="17.5" cy="10.5" r="0.5" fill="currentColor"></circle>
+                  <circle cx="8.5" cy="7.5" r="0.5" fill="currentColor"></circle>
+                  <circle cx="6.5" cy="12.5" r="0.5" fill="currentColor"></circle>
+                  <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path>
+                </svg>
+                <span class="rp-launcher-action-label">Custom CSS</span>
+                <span class="rp-launcher-action-sub">实时样式工作台</span>
+              </button>
+            </div>
+
+            <div class="rp-launcher-section">
+              <div class="rp-launcher-section-head">
+                <div style="display:flex;align-items:center;gap:7px;min-width:0;">
+                  <span class="rp-launcher-section-title">Workspace Files</span>
+                  <span class="rp-launcher-count-pill" id="rp-launcher-cwd">~</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:2px;">
+                  <button type="button" class="icon-btn rp-mini-icon-btn" id="btn-rp-launcher-new-file" title="在根目录新建文件">
+                    <svg width="13.5" height="13.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="12" y1="18" x2="12" y2="12"></line>
+                      <line x1="9" y1="15" x2="15" y2="15"></line>
+                    </svg>
+                  </button>
+                  <button type="button" class="icon-btn rp-mini-icon-btn" id="btn-rp-launcher-new-folder" title="在根目录新建文件夹">
+                    <svg width="13.5" height="13.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                      <line x1="12" y1="11" x2="12" y2="17"></line>
+                      <line x1="9" y1="14" x2="15" y2="14"></line>
+                    </svg>
+                  </button>
+                  <button type="button" class="icon-btn rp-mini-icon-btn" id="btn-rp-launcher-refresh" title="刷新目录">
+                    <svg width="13.5" height="13.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="23 4 23 10 17 10"></polyline>
+                      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div class="rp-launcher-tree" id="rp-launcher-tree"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== View 1: Dedicated Multi-File Reader (Zero Bloated Middle Bar, Clean Full-Bleed Reading) ===== -->
+      <div class="side-pane-body" id="pane-file-body" style="display: none;">
+        <div class="rp-split-container" id="rp-split-container">
+          <!-- Primary File Reader Slot (Starts directly under the top tab strip!) -->
+          <div class="rp-file-slot" id="rp-file-slot-0">
+            <div class="rp-reader-content" id="rp-reader-content"></div>
+          </div>
+
+          <!-- Secondary Split File Reader Slot (Minimal 30px hairline header only when split is active) -->
+          <div class="rp-file-slot rp-file-slot-secondary" id="rp-file-slot-1" style="display: none;">
+            <div class="rp-split-minibar">
+              <div class="rp-reader-bar-left">
+                <select id="rp-split-select" class="rp-split-select" title="选择并排阅读的第二个文件"></select>
+                <span class="rp-reader-meta" id="rp-split-meta" style="display:none;"></span>
+              </div>
+              <div class="rp-reader-bar-right">
+                <button type="button" class="rp-mini-text-btn" id="btn-rp-split-md-toggle" style="display: none;">渲染</button>
+                <button type="button" class="rp-mini-text-btn" id="btn-rp-split-orient" title="切换左右 / 上下分屏布局">上下</button>
+                <button type="button" class="rp-mini-text-btn accent" id="btn-rp-split-cite" title="引用此文件到输入框">@ 引用</button>
+                <button type="button" class="icon-btn rp-mini-icon-btn" id="btn-rp-split-close" title="关闭分屏">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="rp-reader-content" id="rp-split-content"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== View 2: Persistent Workspace File Explorer Tab (Open File) ===== -->
+      <div class="side-pane-body" id="pane-explorer-body" style="display: none;">
+        <div class="rp-subbar">
+          <div class="rp-cwd-pill" id="rp-files-cwd" title="当前工作区目录">~</div>
+          <div class="rp-search-wrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="rp-files-search" class="rp-search-input" placeholder="搜索文件名..." />
+          </div>
+          <button type="button" class="icon-btn rp-mini-icon-btn" id="btn-rp-new-file" title="新建文件">
+            <svg width="13.5" height="13.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="12" y1="18" x2="12" y2="12"></line>
+              <line x1="9" y1="15" x2="15" y2="15"></line>
+            </svg>
+          </button>
+          <button type="button" class="icon-btn rp-mini-icon-btn" id="btn-rp-new-folder" title="新建文件夹">
+            <svg width="13.5" height="13.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              <line x1="12" y1="11" x2="12" y2="17"></line>
+              <line x1="9" y1="14" x2="15" y2="14"></line>
+            </svg>
+          </button>
+          <button type="button" class="icon-btn rp-mini-icon-btn" id="btn-rp-explorer-refresh" title="刷新目录树">
+            <svg width="13.5" height="13.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="rp-files-tree" id="rp-files-tree"></div>
+      </div>
+
+      <!-- ===== View 3: Review (Git Commit/Push + Unified Diff + GitHub PR & Issue) ===== -->
+      <div class="side-pane-body" id="pane-changes-body" style="display: none;">
+        <!-- Top Slim Branch & Sync Bar -->
+        <div class="rp-subbar rp-git-topbar">
+          <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;">
+            <span class="rp-git-branch-pill" id="rp-git-branch" style="display:none;">非 Git</span>
+            <select id="rp-git-branch-select" class="rp-git-branch-select" title="切换或新建 Git 分支" style="display:none;"></select>
+            <span class="rp-git-summary" id="rp-git-summary"></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:3px;flex-shrink:0;">
+            <button type="button" class="rp-mini-text-btn" id="btn-rp-git-pull" title="拉取远程更新 (git pull --rebase)" style="display:none;">↓ Pull</button>
+            <button type="button" class="rp-mini-text-btn accent" id="btn-rp-git-push" title="推送到远程仓库 (git push)" style="display:none;">↑ Push</button>
+            <button type="button" class="rp-mini-text-btn" id="btn-rp-diff-all" style="display: none;">全部 Diff</button>
+            <button type="button" class="icon-btn rp-mini-icon-btn" id="btn-rp-changes-refresh" title="刷新 Git / GitHub 状态">
+              <svg width="13.5" height="13.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Slim 32px Sub-Navigation: Changes / Pull Requests / Issues / Worktree -->
+        <div class="rp-gh-subtabs" id="rp-gh-subtabs">
+          <div class="rp-gh-subtab-group">
+            <button type="button" class="rp-gh-subtab active" data-gh-tab="changes">改动 <span id="rp-gh-changes-cnt"></span></button>
+            <button type="button" class="rp-gh-subtab" data-gh-tab="pulls">PR</button>
+            <button type="button" class="rp-gh-subtab" data-gh-tab="issues">Issue</button>
+            <button type="button" class="rp-gh-subtab" data-gh-tab="worktrees">Worktree</button>
+          </div>
+          <button type="button" class="rp-gh-repo-link" id="btn-rp-gh-repo-pill" title="GitHub 仓库 / 设置">GitHub</button>
+        </div>
+
+        <!-- Sub-view A: Local Changes, Staging, AI Commit & Diff -->
+        <div class="rp-gh-subview" id="rp-gh-view-changes">
+          <div class="rp-git-commit-box" id="rp-git-commit-box" style="display: none;">
+            <textarea id="rp-git-commit-msg" class="rp-git-commit-input" rows="2" placeholder="输入 Commit 提交信息，或点击下方 AI 自动生成…"></textarea>
+            <div class="rp-git-commit-actions">
+              <button type="button" class="rp-mini-text-btn accent" id="btn-rp-git-ai-commit" title="让 agy 根据当前 Diff 自动生成规范 Commit 信息">✦ AI 写 Commit</button>
+              <div style="display:flex;align-items:center;gap:5px;">
+                <button type="button" class="rp-chip-btn" id="btn-rp-git-commit">提交</button>
+                <button type="button" class="rp-chip-btn accent" id="btn-rp-git-commit-push">提交并推送</button>
+              </div>
+            </div>
+            <div class="rp-git-action-msg" id="rp-git-action-msg" style="display:none;"></div>
+          </div>
+
+          <div class="rp-changes-list" id="rp-changes-list"></div>
+
+          <div class="rp-diff-wrap" id="rp-diff-wrap" style="display: none;">
+            <div class="rp-split-minibar">
+              <div class="rp-reader-bar-left">
+                <span class="rp-reader-path" id="rp-diff-path"></span>
+                <span class="rp-diff-stats" id="rp-diff-stats"></span>
+              </div>
+              <div class="rp-reader-bar-right">
+                <button type="button" class="rp-mini-text-btn" id="btn-rp-diff-open-file" style="display: none;">打开文件</button>
+                <button type="button" class="rp-mini-text-btn accent" id="btn-rp-diff-review" title="让 agy 审查当前变更">@ 审查</button>
+              </div>
+            </div>
+            <div class="rp-diff-code" id="rp-diff-code"></div>
+          </div>
+        </div>
+
+        <!-- Sub-view B: GitHub Pull Requests + Create PR + AI PR Review -->
+        <div class="rp-gh-subview" id="rp-gh-view-pulls" style="display: none;">
+          <div class="rp-gh-toolbar">
+            <input type="text" id="rp-gh-pr-repo-input" class="rp-gh-repo-input" placeholder="owner/repo（自动识别）" />
+            <select id="rp-gh-pr-state" class="rp-split-select" style="max-width:80px;">
+              <option value="open">Open</option>
+              <option value="closed">Closed</option>
+              <option value="all">All</option>
+            </select>
+            <button type="button" class="rp-mini-text-btn accent" id="btn-rp-gh-new-pr">+ 新建 PR</button>
+          </div>
+
+          <div class="rp-gh-create-box" id="rp-gh-pr-create-box" style="display: none;">
+            <input type="text" id="rp-gh-pr-title" class="form-input rp-gh-sm-input" placeholder="Pull Request 标题" />
+            <div style="display:flex;gap:6px;">
+              <input type="text" id="rp-gh-pr-base" class="form-input rp-gh-sm-input" style="flex:1;" placeholder="目标分支 (默认 main)" />
+              <input type="text" id="rp-gh-pr-head" class="form-input rp-gh-sm-input" style="flex:1;" placeholder="源分支 (自动当前分支)" />
+            </div>
+            <textarea id="rp-gh-pr-body" class="rp-git-commit-input" rows="2" placeholder="PR 改动说明（可选）…"></textarea>
+            <div style="display:flex;justify-content:flex-end;gap:6px;align-items:center;">
+              <span class="rp-git-action-msg" id="rp-gh-pr-create-msg" style="margin-right:auto;display:none;"></span>
+              <button type="button" class="rp-mini-text-btn" id="btn-rp-gh-pr-cancel">取消</button>
+              <button type="button" class="rp-chip-btn accent" id="btn-rp-gh-pr-submit">创建 PR</button>
+            </div>
+          </div>
+
+          <div class="rp-gh-list" id="rp-gh-pr-list"></div>
+
+          <div class="rp-gh-detail" id="rp-gh-pr-detail" style="display: none;">
+            <div class="rp-split-minibar">
+              <span class="rp-reader-path" id="rp-gh-pr-detail-title"></span>
+              <div class="rp-reader-bar-right">
+                <button type="button" class="rp-mini-text-btn accent" id="btn-rp-gh-pr-review">✦ AI 审 PR</button>
+                <a class="rp-mini-text-btn" id="btn-rp-gh-pr-ext" target="_blank" rel="noopener noreferrer">↗ GitHub</a>
+                <button type="button" class="icon-btn rp-mini-icon-btn" id="btn-rp-gh-pr-close" title="收起详情">✕</button>
+              </div>
+            </div>
+            <div class="rp-gh-detail-body" id="rp-gh-pr-detail-body"></div>
+          </div>
+        </div>
+
+        <!-- Sub-view C: GitHub Issues + AI Analyze & Fix -->
+        <div class="rp-gh-subview" id="rp-gh-view-issues" style="display: none;">
+          <div class="rp-gh-toolbar">
+            <input type="text" id="rp-gh-issue-repo-input" class="rp-gh-repo-input" placeholder="owner/repo（自动识别）" />
+            <select id="rp-gh-issue-state" class="rp-split-select" style="max-width:80px;">
+              <option value="open">Open</option>
+              <option value="closed">Closed</option>
+              <option value="all">All</option>
+            </select>
+            <button type="button" class="rp-mini-text-btn" id="btn-rp-gh-issue-load">加载</button>
+          </div>
+
+          <div class="rp-gh-list" id="rp-gh-issue-list"></div>
+
+          <div class="rp-gh-detail" id="rp-gh-issue-detail" style="display: none;">
+            <div class="rp-split-minibar">
+              <span class="rp-reader-path" id="rp-gh-issue-detail-title"></span>
+              <div class="rp-reader-bar-right">
+                <button type="button" class="rp-mini-text-btn accent" id="btn-rp-gh-issue-fix">✦ AI 分析修复</button>
+                <a class="rp-mini-text-btn" id="btn-rp-gh-issue-ext" target="_blank" rel="noopener noreferrer">↗ GitHub</a>
+                <button type="button" class="icon-btn rp-mini-icon-btn" id="btn-rp-gh-issue-close" title="收起详情">✕</button>
+              </div>
+            </div>
+            <div class="rp-gh-detail-body" id="rp-gh-issue-detail-body"></div>
+          </div>
+        </div>
+
+        <!-- Sub-view D: Git Worktrees (Parallel Multi-Branch Workspaces) -->
+        <div class="rp-gh-subview" id="rp-gh-view-worktrees" style="display: none;">
+          <div class="rp-gh-toolbar">
+            <input type="text" id="rp-wt-branch-input" class="rp-gh-repo-input" placeholder="输入分支名创建独立 Worktree（如 feat/ui）" />
+            <button type="button" class="rp-mini-text-btn accent" id="btn-rp-wt-add">+ 新建</button>
+          </div>
+          <div class="rp-git-action-msg" id="rp-wt-status" style="display:none;padding:0 12px;"></div>
+          <div class="rp-gh-list" id="rp-wt-list"></div>
+        </div>
+      </div>
+
+      <!-- ===== View 4: Artifact Preview & Source ===== -->
+      <div class="side-pane-body" id="pane-artifact-body" style="display: none;">
+        <div class="rp-subbar" id="rp-artifact-bar">
+          <span class="rp-reader-path" id="rp-artifact-title">Artifact 预览</span>
+          <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+            <div class="segmented-tabs" id="artifact-tabs" style="display: none;">
+              <button type="button" class="seg-tab active" data-tab="preview">预览</button>
+              <button type="button" class="seg-tab" data-tab="source">源码</button>
+            </div>
+          </div>
+        </div>
+        <div class="rp-empty-state" id="rp-artifact-empty">
+          <div class="rp-empty-icon">✦</div>
+          <div class="rp-empty-title">暂无活跃 Artifact</div>
+          <div class="rp-empty-desc">在对话中让 <code>agy</code> 生成 HTML / SVG 交互界面或代码片段后，点击代码块右上角「Artifact」即可在此实时渲染预览。</div>
+        </div>
+        <iframe id="artifact-iframe" class="artifact-iframe" sandbox="allow-scripts" style="display: none;"></iframe>
+        <pre id="artifact-source" class="artifact-source-view" style="display: none;"></pre>
+      </div>
+
+      <!-- ===== View 5: Workspace Terminal ===== -->
+      <div class="side-pane-body" id="pane-terminal-body" style="display: none;">
+        <div class="rp-subbar rp-term-subbar">
+          <div class="rp-cwd-pill" id="rp-term-cwd" title="终端当前工作目录">~</div>
+          <div class="rp-term-quick-row">
+            <button type="button" class="rp-chip-btn" data-term-quick="git status -sb">git status</button>
+            <button type="button" class="rp-chip-btn" data-term-quick="Get-ChildItem -Name">ls</button>
+            <button type="button" class="rp-chip-btn" id="btn-rp-term-clear">清空</button>
+            <button type="button" class="rp-chip-btn danger" id="btn-rp-term-stop" style="display: none;">停止</button>
+          </div>
+        </div>
+
+        <div class="rp-term-output" id="rp-term-output">
+          <div class="rp-term-welcome">工作区终端已就绪（PowerShell · UTF-8）。支持 <code>cd</code> 切换目录与 <code>↑ / ↓</code> 历史命令。</div>
+        </div>
+
+        <div class="rp-term-input-row">
+          <span class="rp-term-prompt">PS&gt;</span>
+          <input type="text" id="rp-term-input" class="rp-term-input" placeholder="输入命令并回车，如 python --version、git log -5..." autocomplete="off" spellcheck="false" />
+          <button type="button" class="rp-term-run-btn" id="btn-rp-term-run">运行</button>
+        </div>
+      </div>
+
+      <!-- ===== Mode 5: Custom CSS Studio ===== -->
+      <div class="side-pane-body" id="pane-css-body" style="display: none;">
+        <div class="css-studio-wrap">
+          <div style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.55;">
+            在下方输入任意 CSS 即可<strong>实时预览</strong>；保存后写入本地 <code>custom.css</code> 并支持外部编辑器热重载。
+          </div>
+          <div class="css-preset-row">
+            <button class="css-preset-chip" data-preset="wider">宽屏阅读 (920px)</button>
+            <button class="css-preset-chip" data-preset="larger">大字号排版 (17.5px)</button>
+            <button class="css-preset-chip" data-preset="rose">暖玫瑰强调色</button>
+            <button class="css-preset-chip" data-preset="reset">清空覆盖</button>
+          </div>
+          <textarea id="css-editor" class="css-editor-textarea" spellcheck="false"></textarea>
+          <div class="css-studio-footer">
+            <span id="css-save-status">已与磁盘 custom.css 同步</span>
+            <button class="primary-btn" id="btn-save-css">保存到 custom.css</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+    </div><!-- /.stage-card-shell -->
+  </div><!-- /.claude-app -->
+  </div><!-- /.desktop-window-shell -->
+
+  <!-- ==================== Elegant Folder Browser Modal ==================== -->
+  <div class="modal-backdrop" id="folder-modal">
+    <div class="modal-card modal-wide">
+      <div class="modal-header-row">
+        <h2 class="modal-title" id="folder-modal-title">选择工作区文件夹</h2>
+        <button class="topbar-pill-btn" id="btn-native-folder-dialog" title="打开 Windows 系统文件夹选择窗口">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>系统文件夹弹窗</span>
+        </button>
+      </div>
+
+      <div class="folder-shortcuts-row" id="folder-shortcuts-row"></div>
+
+      <div class="folder-path-bar">
+        <button type="button" class="icon-btn" id="btn-folder-up" title="上一级目录">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="18 15 12 9 6 15"></polyline>
+          </svg>
+        </button>
+        <input id="folder-path-input" class="form-input" style="flex: 1;" type="text" placeholder="输入目录路径后按 Enter 跳转…" />
+        <button type="button" class="topbar-pill-btn folder-new-btn" id="btn-folder-mkdir" title="在当前目录新建文件夹">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            <line x1="12" y1="11" x2="12" y2="17"></line>
+            <line x1="9" y1="14" x2="15" y2="14"></line>
+          </svg>
+          <span>新建文件夹</span>
+        </button>
+        <button type="button" class="icon-btn" id="btn-folder-refresh" title="刷新当前目录">
+          <svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Inline Action Bar for Create / Rename / Delete inside Folder Browser (zero double modal) -->
+      <div class="folder-inline-bar" id="folder-inline-bar" style="display: none;">
+        <div class="folder-inline-main">
+          <span class="folder-inline-label" id="folder-inline-label">新建文件夹</span>
+          <input id="folder-inline-input" class="form-input folder-inline-input" type="text" placeholder="输入新文件夹名称…" autocomplete="off" />
+          <div class="folder-inline-btns">
+            <button type="button" class="topbar-pill-btn" id="btn-folder-inline-cancel">取消</button>
+            <button type="button" class="primary-btn" id="btn-folder-inline-submit">创建</button>
+            <button type="button" class="topbar-pill-btn" id="btn-folder-inline-enter" style="display:none;">创建并进入</button>
+          </div>
+        </div>
+        <div class="folder-inline-err" id="folder-inline-err" style="display: none;"></div>
+      </div>
+
+      <div class="folder-dir-list" id="folder-dir-list"></div>
+
+      <!-- Custom Context Menu for Local Folder Browser -->
+      <div class="rp-tree-ctx-menu" id="folder-ctx-menu" style="display: none;"></div>
+
+      <div class="modal-actions" style="justify-content: space-between;">
+        <button class="topbar-pill-btn" id="btn-close-folder-modal">取消</button>
+        <div style="display: flex; gap: 8px;">
+          <button class="topbar-pill-btn" id="btn-folder-pin-and-use">添加为项目并使用</button>
+          <button class="primary-btn" id="btn-folder-confirm">选择当前目录</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Workspace File Picker Modal ==================== -->
+  <div class="modal-backdrop" id="file-picker-modal">
+    <div class="modal-card modal-wide">
+      <div class="modal-header-row">
+        <h2 class="modal-title">引用当前工作区文件</h2>
+        <span class="form-hint" id="file-picker-cwd-hint"></span>
+      </div>
+      <input id="file-picker-search" class="form-input" type="text" placeholder="搜索文件名或相对路径…" />
+      <div class="folder-dir-list" id="file-picker-list"></div>
+      <div class="modal-actions">
+        <button class="topbar-pill-btn" id="btn-close-file-picker">完成</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Interactive Sketchpad Modal ==================== -->
+  <div class="modal-backdrop" id="sketch-modal">
+    <div class="modal-card modal-sketch">
+      <div class="modal-header-row">
+        <h2 class="modal-title">绘图草图板</h2>
+        <div class="sketch-toolbar">
+          <div class="sketch-colors" id="sketch-colors">
+            <button type="button" class="color-swatch active" data-color="#141413" style="background:#141413;" title="墨黑"></button>
+            <button type="button" class="color-swatch" data-color="#C96442" style="background:#C96442;" title="赤陶橙"></button>
+            <button type="button" class="color-swatch" data-color="#2563EB" style="background:#2563EB;" title="钴蓝"></button>
+            <button type="button" class="color-swatch" data-color="#16A34A" style="background:#16A34A;" title="森绿"></button>
+            <button type="button" class="color-swatch" data-color="#D97706" style="background:#D97706;" title="琥珀"></button>
+            <button type="button" class="color-swatch eraser" data-color="#FFFFFF" title="橡皮擦">橡皮</button>
+          </div>
+          <div class="segmented-tabs" id="sketch-sizes">
+            <button type="button" class="seg-tab" data-size="2">细</button>
+            <button type="button" class="seg-tab active" data-size="4">中</button>
+            <button type="button" class="seg-tab" data-size="9">粗</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sketch-canvas-wrap">
+        <canvas id="sketch-canvas" width="640" height="360"></canvas>
+      </div>
+
+      <div class="modal-actions" style="justify-content: space-between;">
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="topbar-pill-btn" id="btn-sketch-undo">撤销</button>
+          <button type="button" class="topbar-pill-btn" id="btn-sketch-clear">清空画布</button>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="topbar-pill-btn" id="btn-close-sketch">取消</button>
+          <button type="button" class="primary-btn" id="btn-sketch-attach">附加到对话</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Antigravity-Aligned Two-Column Settings Overlay ==================== -->
+  <div class="modal-backdrop" id="settings-modal">
+    <div class="agy-settings-shell">
+      <!-- Left Settings Sidebar -->
+      <aside class="agy-settings-nav">
+        <div class="agy-settings-nav-scroll">
+          <div class="agy-settings-group-title">设置</div>
+          <button type="button" class="agy-settings-nav-item active" data-stab="general">通用</button>
+          <button type="button" class="agy-settings-nav-item" data-stab="appearance">外观</button>
+          <button type="button" class="agy-settings-nav-item" data-stab="shortcuts">快捷键</button>
+          <button type="button" class="agy-settings-nav-item" data-stab="notifications">通知</button>
+          <button type="button" class="agy-settings-nav-item" data-stab="models">模型</button>
+          <button type="button" class="agy-settings-nav-item" data-stab="github">GitHub</button>
+
+          <div class="agy-settings-group-title" style="margin-top: 16px;">项目</div>
+          <div id="settings-projects-nav" class="agy-settings-proj-nav"></div>
+        </div>
+
+        <button type="button" class="agy-settings-profile-card" id="btn-stab-profile" data-stab="profile">
+          <span class="avatar-circle" id="settings-nav-avatar">
+            <img id="settings-nav-avatar-img" class="avatar-img" alt="头像" referrerpolicy="no-referrer" style="display: none;" />
+            <span id="settings-nav-avatar-fallback">A</span>
+          </span>
+          <div class="profile-meta">
+            <div class="profile-name" id="settings-nav-name">Antigravity CLI</div>
+            <div class="cli-status-line" id="settings-nav-sub">点击编辑头像与资料</div>
+          </div>
+        </button>
+      </aside>
+
+      <!-- Right Settings Content Pane -->
+      <div class="agy-settings-content">
+        <button type="button" class="icon-btn agy-settings-close" id="btn-close-settings" title="关闭设置 (Esc)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        <!-- Tab: General (通用) -->
+        <div class="agy-stab-pane active" id="stab-general">
+          <h2 class="agy-stab-title">通用</h2>
+          <p class="agy-stab-desc">配置界面布局、Agent 执行权限与输入框行为。</p>
+
+          <div class="agy-section-heading">界面语言</div>
+          <div class="agy-group-box">
+            <div class="agy-setting-row agy-setting-row-stack">
+              <div>
+                <div class="agy-row-title">显示语言</div>
+                <div class="agy-row-desc">实时切换工作台界面语言，不影响对话内容与代码文件。</div>
+              </div>
+              <div class="segmented-tabs" id="settings-lang-tabs" data-i18n-skip="1">
+                <button type="button" class="seg-tab active" data-lang-choice="zh-CN">简体中文</button>
+                <button type="button" class="seg-tab" data-lang-choice="en">English</button>
+                <button type="button" class="seg-tab" data-lang-choice="ja">日本語</button>
+                <button type="button" class="seg-tab" data-lang-choice="ko">한국어</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="agy-section-heading">界面布局</div>
+          <div class="agy-layout-cards" id="settings-layout-cards">
+            <button type="button" class="agy-layout-card" data-layout-choice="knowledge">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"></path>
+              </svg>
+              <div class="agy-layout-card-title">知识工作</div>
+              <div class="agy-layout-card-desc">精简界面，隐藏项目目录与开发控件，专注研究、写作与日常对话。</div>
+            </button>
+            <button type="button" class="agy-layout-card active" data-layout-choice="engineering">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+              </svg>
+              <div class="agy-layout-card-title">软件工程</div>
+              <div class="agy-layout-card-desc">完整界面，展示项目工作区、权限模式切换与完整编码辅助工具。</div>
+            </button>
+          </div>
+
+          <div class="agy-section-heading">权限与 CLI 引擎</div>
+          <p class="agy-section-sub">控制本地 AI CLI 引擎与当前计算机上可执行的操作权限。</p>
+          <div class="agy-group-box">
+            <div class="agy-setting-row">
+              <div>
+                <div class="agy-row-title">驱动引擎 (CLI Adapter)</div>
+                <div class="agy-row-desc" id="settings-engine-desc">默认使用 Antigravity CLI (`agy`)，已安装其他 CLI 时可按需切换。</div>
+              </div>
+              <select id="settings-cli-engine" class="agy-inline-select">
+                <option value="agy">Antigravity (agy)</option>
+                <option value="claude">Claude Code (claude)</option>
+                <option value="codex">OpenAI Codex (codex)</option>
+                <option value="gemini">Gemini CLI (gemini)</option>
+              </select>
+            </div>
+            <div class="agy-setting-row">
+              <div>
+                <div class="agy-row-title">默认执行模式</div>
+                <div class="agy-row-desc">控制文件编辑与命令运行是否需要确认。</div>
+              </div>
+              <select id="settings-default-mode" class="agy-inline-select">
+                <option value="default">请求批准 (Default)</option>
+                <option value="plan">先做规划 (Plan)</option>
+                <option value="accept-edits">自动编辑 (Accept Edits)</option>
+                <option value="auto">完全自动 (Auto)</option>
+              </select>
+            </div>
+            <div class="agy-setting-row agy-advanced-toggle-row" id="btn-toggle-adv-cli">
+              <span class="agy-row-desc" style="color: var(--text-secondary);">高级 CLI 参数 ›</span>
+            </div>
+            <div class="agy-advanced-body" id="adv-cli-body" style="display: none;">
+              <div class="form-field">
+                <label for="input-agy-path">agy 可执行文件路径（留空自动探测）</label>
+                <input id="input-agy-path" class="form-input" type="text" placeholder="留空自动使用已探测的 agy.exe" />
+                <span class="form-hint" id="settings-detected-agy"></span>
+              </div>
+              <div class="form-field" style="margin-top: 10px;">
+                <label for="input-extra-flags">附加 CLI 启动参数（可选）</label>
+                <input id="input-extra-flags" class="form-input" type="text" placeholder="例如：--add-dir D:\Docs" />
+              </div>
+              <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                <button type="button" class="primary-btn" id="btn-save-adv-cli" style="padding: 6px 14px; font-size: 12.5px;">保存 CLI 参数</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="agy-section-heading">输入框</div>
+          <div class="agy-group-box">
+            <div class="agy-setting-row">
+              <div>
+                <div class="agy-row-title">生成中发送消息</div>
+                <div class="agy-row-desc">在 AI 回复尚未结束时提交追问的处理方式。</div>
+              </div>
+              <div class="segmented-tabs" id="settings-queued-tabs">
+                <button type="button" class="seg-tab active" data-queued-choice="queue">队列等待</button>
+                <button type="button" class="seg-tab" data-queued-choice="immediate">中断并立即发送</button>
+              </div>
+            </div>
+            <div class="agy-setting-row">
+              <div>
+                <div class="agy-row-title">发送消息快捷键</div>
+                <div class="agy-row-desc">选择在聊天输入框中触发发送的按键。</div>
+              </div>
+              <div class="segmented-tabs" id="settings-sendkey-tabs">
+                <button type="button" class="seg-tab active" data-sendkey-choice="enter">Enter</button>
+                <button type="button" class="seg-tab" data-sendkey-choice="ctrl_enter">Ctrl+Enter</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Appearance (外观) -->
+        <div class="agy-stab-pane" id="stab-appearance">
+          <h2 class="agy-stab-title">外观</h2>
+          <p class="agy-stab-desc">自定义亮/暗主题、排版字体风格、配色方案与对话阅读宽度。</p>
+
+          <div class="agy-group-box">
+            <div class="agy-setting-row">
+              <div>
+                <div class="agy-row-title">主题模式</div>
+                <div class="agy-row-desc">在浅色与深色界面间切换（所有配色方案均支持双模式）。</div>
+              </div>
+              <div class="segmented-tabs" id="settings-theme-tabs">
+                <button type="button" class="seg-tab active" data-settings-theme="light">浅色</button>
+                <button type="button" class="seg-tab" data-settings-theme="dark">深色</button>
+              </div>
+            </div>
+            <div class="agy-setting-row">
+              <div>
+                <div class="agy-row-title">对话阅读宽度</div>
+                <div class="agy-row-desc">调整聊天流与输入框的最大列宽。</div>
+              </div>
+              <div class="segmented-tabs" id="settings-width-tabs">
+                <button type="button" class="seg-tab" data-width-choice="compact">紧凑</button>
+                <button type="button" class="seg-tab active" data-width-choice="standard">标准</button>
+                <button type="button" class="seg-tab" data-width-choice="wide">宽屏</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="agy-section-heading">字体风格（同步应用于标题、问候语与正文）</div>
+          <div class="font-preset-grid" id="settings-font-grid"></div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <div class="agy-section-heading" style="margin-bottom:8px;">主题配色方案</div>
+            <button type="button" class="rp-mini-text-btn" id="btn-settings-reset-colors" title="清除手动微调的颜色，恢复当前方案默认色">恢复方案默认色</button>
+          </div>
+          <div class="theme-preset-grid" id="settings-theme-preset-grid"></div>
+
+          <div class="agy-section-heading" style="margin-top:4px;">快捷微调色盘</div>
+          <div class="custom-color-grid settings-inline-colors">
+            <label class="color-picker-tile">
+              <input type="color" id="settings-pick-accent" data-custom-color="accent" />
+              <div class="color-picker-meta">
+                <span class="color-picker-name">主题强调色</span>
+                <span class="color-picker-hex" id="settings-hex-accent">#C96442</span>
+              </div>
+            </label>
+            <label class="color-picker-tile">
+              <input type="color" id="settings-pick-bg-main" data-custom-color="bg_main" />
+              <div class="color-picker-meta">
+                <span class="color-picker-name">主画布背景</span>
+                <span class="color-picker-hex" id="settings-hex-bg-main">#FAF9F5</span>
+              </div>
+            </label>
+            <label class="color-picker-tile">
+              <input type="color" id="settings-pick-bg-sidebar" data-custom-color="bg_sidebar" />
+              <div class="color-picker-meta">
+                <span class="color-picker-name">侧边栏背景</span>
+                <span class="color-picker-hex" id="settings-hex-bg-sidebar">#F3F1E9</span>
+              </div>
+            </label>
+            <label class="color-picker-tile">
+              <input type="color" id="settings-pick-user-bubble" data-custom-color="bg_user_bubble" />
+              <div class="color-picker-meta">
+                <span class="color-picker-name">用户气泡背景</span>
+                <span class="color-picker-hex" id="settings-hex-user-bubble">#F0EEE6</span>
+              </div>
+            </label>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:14px;">
+            <button type="button" class="topbar-pill-btn" id="btn-goto-palette-customize">前往自定义页</button>
+            <button type="button" class="topbar-pill-btn" id="btn-open-css-from-settings">打开 Custom CSS 工作台</button>
+          </div>
+        </div>
+
+        <!-- Tab: Shortcuts (快捷键) -->
+        <div class="agy-stab-pane" id="stab-shortcuts">
+          <h2 class="agy-stab-title">快捷键</h2>
+          <p class="agy-stab-desc">全局与桌面窗口快捷键一览。</p>
+
+          <div class="agy-group-box">
+            <div class="agy-setting-row">
+              <div class="agy-row-title">新聊天</div>
+              <kbd class="agy-kbd">Ctrl + N / Ctrl + K</kbd>
+            </div>
+            <div class="agy-setting-row">
+              <div class="agy-row-title">打开工作区文件夹</div>
+              <kbd class="agy-kbd">Ctrl + O</kbd>
+            </div>
+            <div class="agy-setting-row">
+              <div class="agy-row-title">快速搜索并打开文件</div>
+              <kbd class="agy-kbd">Ctrl + P</kbd>
+            </div>
+            <div class="agy-setting-row">
+              <div class="agy-row-title">关闭当前右侧标签页</div>
+              <kbd class="agy-kbd">Ctrl + W</kbd>
+            </div>
+            <div class="agy-setting-row">
+              <div class="agy-row-title">收起 / 展开左侧边栏</div>
+              <kbd class="agy-kbd">Ctrl + B</kbd>
+            </div>
+            <div class="agy-setting-row">
+              <div class="agy-row-title">收起 / 展开右侧多标签栏</div>
+              <kbd class="agy-kbd">Ctrl + \</kbd>
+            </div>
+            <div class="agy-setting-row">
+              <div class="agy-row-title">并排双文件分屏阅读</div>
+              <kbd class="agy-kbd">Ctrl + Shift + \</kbd>
+            </div>
+            <div class="agy-setting-row">
+              <div class="agy-row-title">打开工作区终端</div>
+              <kbd class="agy-kbd">Ctrl + J</kbd>
+            </div>
+            <div class="agy-setting-row">
+              <div class="agy-row-title">打开变更审查 (Review)</div>
+              <kbd class="agy-kbd">Ctrl + Shift + G</kbd>
+            </div>
+            <div class="agy-setting-row">
+              <div class="agy-row-title">切换浅色 / 深色主题</div>
+              <kbd class="agy-kbd">Ctrl + Shift + L</kbd>
+            </div>
+            <div class="agy-setting-row">
+              <div class="agy-row-title">查看实时配额 (View Usage)</div>
+              <kbd class="agy-kbd">Ctrl + Shift + U</kbd>
+            </div>
+            <div class="agy-setting-row">
+              <div class="agy-row-title">打开设置 / 快捷键一览</div>
+              <kbd class="agy-kbd">Ctrl + , / Ctrl + /</kbd>
+            </div>
+            <div class="agy-setting-row">
+              <div class="agy-row-title">界面放大 / 缩小 / 重置</div>
+              <kbd class="agy-kbd">Ctrl + = / - / 0</kbd>
+            </div>
+            <div class="agy-setting-row">
+              <div class="agy-row-title">全屏切换 / 退出应用</div>
+              <kbd class="agy-kbd">F11 / Ctrl + Q</kbd>
+            </div>
+            <div class="agy-setting-row">
+              <div class="agy-row-title">发送消息 / 输入框换行</div>
+              <kbd class="agy-kbd" id="shortcut-send-readout">Enter / Shift + Enter</kbd>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Notifications (通知) -->
+        <div class="agy-stab-pane" id="stab-notifications">
+          <h2 class="agy-stab-title">通知</h2>
+          <p class="agy-stab-desc">当长任务完成时向你发送桌面提醒或提示音。</p>
+
+          <div class="agy-group-box">
+            <div class="agy-setting-row">
+              <div>
+                <div class="agy-row-title">任务完成桌面通知</div>
+                <div class="agy-row-desc">当页面处于后台且 <code>agy</code> 回复完成时弹出系统通知。</div>
+              </div>
+              <label class="agy-switch">
+                <input type="checkbox" id="toggle-notify-desktop" />
+                <span class="agy-switch-track"></span>
+              </label>
+            </div>
+            <div class="agy-setting-row">
+              <div>
+                <div class="agy-row-title">完成提示音</div>
+                <div class="agy-row-desc">回复结束时播放一声柔和提示音。</div>
+              </div>
+              <label class="agy-switch">
+                <input type="checkbox" id="toggle-notify-sound" />
+                <span class="agy-switch-track"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Models (模型) -->
+        <div class="agy-stab-pane" id="stab-models">
+          <h2 class="agy-stab-title">模型</h2>
+          <p class="agy-stab-desc">查看当前账号下 <code>agy</code> CLI 可用的模型家族，或附加自定义模型标识。</p>
+
+          <div class="agy-group-box" id="settings-models-list"></div>
+
+          <div class="agy-section-heading">自定义模型标识（可选）</div>
+          <div class="agy-group-box" style="padding: 14px 16px;">
+            <div style="display:flex;gap:8px;">
+              <input id="input-custom-model" class="form-input" style="flex:1;" type="text" placeholder="例如：gemini-4-neon-xhigh" />
+              <button type="button" class="primary-btn" id="btn-save-custom-model" style="padding:0 14px;">添加并选用</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: GitHub (原生 OAuth Device Flow 零配置一键登录与提交身份) -->
+        <div class="agy-stab-pane" id="stab-github">
+          <h2 class="agy-stab-title">GitHub 集成</h2>
+          <p class="agy-stab-desc">支持在软件内直接克隆仓库、一键提交与推送、浏览和创建 PR / Issue，并交由 <code>agy</code> 自动写 Commit 与深度审查 PR。</p>
+
+          <div class="agy-group-box" style="padding: 16px;">
+            <div class="gh-account-card" id="gh-account-card">
+              <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+                <span class="avatar-circle" id="gh-avatar-wrap">
+                  <img id="gh-avatar-img" class="avatar-img" alt="GitHub" style="display:none;" />
+                  <span id="gh-avatar-fallback">GH</span>
+                </span>
+                <div style="min-width:0;">
+                  <div class="agy-row-title" id="gh-account-name">尚未连接 GitHub 账号</div>
+                  <div class="agy-row-desc" id="gh-account-sub">点击右侧按钮即可通过浏览器一键授权登录，免手动创建 Token。</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                <button type="button" class="primary-btn gh-login-hero-btn" id="btn-gh-web-login">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"></path>
+                  </svg>
+                  <span>浏览器一键登录</span>
+                </button>
+                <button type="button" class="topbar-pill-btn" id="btn-gh-disconnect" style="display:none;color:var(--danger);">断开连接</button>
+              </div>
+            </div>
+
+            <!-- Live 8-Char Device Code Card (shown automatically during OAuth Device Flow) -->
+            <div class="gh-device-box" id="gh-device-flow-box" style="display:none;">
+              <div class="gh-device-head">
+                <span class="gh-device-badge">浏览器授权进行中</span>
+                <button type="button" class="rp-mini-text-btn" id="btn-gh-login-cancel">取消</button>
+              </div>
+              <div class="gh-device-code-row">
+                <code class="gh-device-code" id="gh-device-code">----</code>
+                <button type="button" class="topbar-pill-btn" id="btn-gh-copy-code">复制验证码</button>
+                <a class="primary-btn" id="link-gh-device-url" href="https://github.com/login/device" target="_blank" rel="noopener noreferrer" style="padding:6px 12px;font-size:12.5px;text-decoration:none;">打开授权页 ↗</a>
+              </div>
+              <div class="form-hint" id="gh-device-hint">验证码已自动复制：请在打开的 GitHub 页面粘贴 8 位验证码并点击 Authorize，授权后将自动完成登录…</div>
+            </div>
+
+            <div class="form-hint" id="gh-auth-status" style="margin-top:8px;"></div>
+
+            <!-- Collapsible Advanced Options (Custom OAuth Client ID & Manual PAT Fallback) -->
+            <div class="gh-pat-toggle-row" id="btn-toggle-gh-pat">
+              <span>高级：自定义 OAuth Client ID 或手动粘贴 Token（可选） ›</span>
+            </div>
+            <div id="gh-pat-body" style="display:none;margin-top:10px;">
+              <div class="form-field" style="margin-bottom:12px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+                  <label for="input-gh-client-id">自定义 OAuth App Client ID（留空使用内置默认应用）</label>
+                  <a href="https://github.com/settings/applications/new" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--accent);text-decoration:none;">自建 OAuth App ↗</a>
+                </div>
+                <input id="input-gh-client-id" class="form-input" style="font-family:var(--font-mono);font-size:12.5px;" type="text" placeholder="留空即自动使用内置 Antigravity Studio OAuth App" autocomplete="off" />
+              </div>
+
+              <div class="form-field">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                  <label for="input-gh-token">手动 Personal Access Token (PAT)</label>
+                  <a href="https://github.com/settings/tokens/new?description=Antigravity+Studio&scopes=repo,read:user" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:var(--accent);text-decoration:none;">去 GitHub 生成 Token ↗</a>
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <input id="input-gh-token" class="form-input" style="flex:1;" type="password" placeholder="粘贴 ghp_... 或 github_pat_...（仅保存在本机 data/settings.json）" autocomplete="off" />
+                  <button type="button" class="topbar-pill-btn" id="btn-gh-connect">验证 Token</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="agy-section-heading">本地 Git 提交身份（未配置全局 .gitconfig 时自动生效）</div>
+          <div class="agy-group-box" style="padding: 16px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div class="form-field">
+                <label for="input-git-name">Author Name</label>
+                <input id="input-git-name" class="form-input" type="text" placeholder="例如：Your Name" />
+              </div>
+              <div class="form-field">
+                <label for="input-git-email">Author Email</label>
+                <input id="input-git-email" class="form-input" type="email" placeholder="例如：you@users.noreply.github.com" />
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+              <span class="form-hint" id="git-identity-status"></span>
+              <div style="display:flex;gap:8px;">
+                <button type="button" class="topbar-pill-btn" id="btn-gh-open-clone-from-settings">克隆 GitHub 仓库…</button>
+                <button type="button" class="primary-btn" id="btn-save-git-identity" style="padding:6px 14px;font-size:12.5px;">保存提交身份</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Profile (账号与资料) -->
+        <div class="agy-stab-pane" id="stab-profile">
+          <h2 class="agy-stab-title">个人资料与头像</h2>
+          <p class="agy-stab-desc">自定义左下角显示的头像、名称与副标题。</p>
+
+          <div class="agy-group-box" style="padding: 18px;">
+            <div class="form-field" style="margin-bottom: 14px;">
+              <label>头像</label>
+              <div class="avatar-settings-row">
+                <span class="avatar-circle avatar-lg" id="settings-avatar-preview">
+                  <img id="settings-avatar-img" class="avatar-img" alt="头像预览" referrerpolicy="no-referrer" style="display: none;" />
+                  <span id="settings-avatar-fallback">A</span>
+                </span>
+                <input type="file" id="avatar-file-input" accept="image/*" style="display: none;" />
+                <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                  <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <button type="button" class="topbar-pill-btn" id="btn-upload-avatar">上传本地头像</button>
+                    <button type="button" class="topbar-pill-btn" id="btn-reset-avatar">恢复默认</button>
+                    <span class="form-hint" id="avatar-upload-status"></span>
+                  </div>
+                  <input id="input-profile-avatar" class="form-input" type="text" placeholder="或直接粘贴 Google 头像链接 (https://lh3.googleusercontent.com/...)" />
+                </div>
+              </div>
+              <span class="form-hint">在 Gmail / Google 账号右上角右键头像 →「复制图片地址」粘贴到上方即可同步 Google 头像。</span>
+            </div>
+
+            <div class="form-field" style="margin-bottom: 12px;">
+              <label for="input-profile-name">显示名称</label>
+              <input id="input-profile-name" class="form-input" type="text" placeholder="例如：Your Name" />
+            </div>
+
+            <div class="form-field" style="margin-bottom: 14px;">
+              <label for="input-profile-subtitle">副标题 / 邮箱（可选）</label>
+              <input id="input-profile-subtitle" class="form-input" type="text" placeholder="例如：yourname@gmail.com" />
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;align-items:center;gap:10px;">
+              <span class="form-hint" id="profile-save-status"></span>
+              <button type="button" class="primary-btn" id="btn-save-settings">保存资料</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Dynamic Project Detail (项目设置) -->
+        <div class="agy-stab-pane" id="stab-project">
+          <h2 class="agy-stab-title" id="stab-proj-title">项目</h2>
+          <p class="agy-stab-desc" id="stab-proj-path"></p>
+          <div class="agy-group-box">
+            <div class="agy-setting-row">
+              <div>
+                <div class="agy-row-title">切换为当前工作区</div>
+                <div class="agy-row-desc">立即在该项目目录下发起新聊天。</div>
+              </div>
+              <button type="button" class="primary-btn" id="btn-stab-proj-open" style="padding: 6px 14px; font-size: 12.5px;">打开项目</button>
+            </div>
+            <div class="agy-setting-row">
+              <div>
+                <div class="agy-row-title">从常用项目中移除</div>
+                <div class="agy-row-desc">仅移出侧边栏列表，不会删除本地磁盘文件。</div>
+              </div>
+              <button type="button" class="topbar-pill-btn" id="btn-stab-proj-remove" style="color: var(--danger);">移除项目</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== GitHub Clone & Repository Browser Modal ==================== -->
+  <div class="modal-backdrop" id="github-clone-modal">
+    <div class="modal-card modal-folder" style="max-width: 620px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <h2 class="modal-title" style="margin:0;">从 GitHub 克隆仓库</h2>
+        <button type="button" class="rp-mini-text-btn accent" id="btn-gh-clone-open-settings">GitHub 账号设置</button>
+      </div>
+
+      <div class="form-field">
+        <label for="gh-clone-url">仓库地址或 <code>owner/repo</code></label>
+        <div style="display:flex;gap:8px;">
+          <input id="gh-clone-url" class="form-input" style="flex:1;font-family:var(--font-mono);font-size:12.5px;" type="text" placeholder="例如：owner/repo 或 https://github.com/owner/repo.git" />
+          <button type="button" class="primary-btn" id="btn-gh-do-clone" style="padding:0 14px;white-space:nowrap;">克隆并打开</button>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="gh-clone-dir">本地保存位置（父目录）</label>
+        <input id="gh-clone-dir" class="form-input" style="font-family:var(--font-mono);font-size:12px;" type="text" placeholder="默认保存在 scratch 目录" />
+      </div>
+
+      <div class="form-hint" id="gh-clone-status" style="min-height:16px;"></div>
+
+      <div class="form-field" style="margin-top:4px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <label for="gh-repo-search" id="gh-repo-list-label">搜索 GitHub 仓库或浏览我的仓库</label>
+          <span class="form-hint" id="gh-repo-list-hint"></span>
+        </div>
+        <input id="gh-repo-search" class="form-input" type="text" placeholder="输入关键词搜索（如 antigravity / codex）或浏览已登录账号仓库…" autocomplete="off" />
+      </div>
+
+      <div class="folder-dir-list" id="gh-repo-list" style="height: 240px;"></div>
+
+      <div class="modal-actions">
+        <button type="button" class="topbar-pill-btn" id="btn-close-gh-clone">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Full-Screen Image Lightbox Viewer ==================== -->
+  <div class="img-lightbox-backdrop" id="image-lightbox-modal" aria-hidden="true">
+    <div class="img-lightbox-topbar">
+      <div class="img-lightbox-title-wrap">
+        <span class="img-lightbox-title" id="lightbox-title">图片预览</span>
+        <span class="img-lightbox-zoom" id="lightbox-zoom-label">100%</span>
+      </div>
+      <div class="img-lightbox-actions">
+        <button type="button" class="img-lb-btn" id="btn-lb-zoom-out" title="缩小">−</button>
+        <button type="button" class="img-lb-btn" id="btn-lb-zoom-reset" title="适应窗口">适应</button>
+        <button type="button" class="img-lb-btn" id="btn-lb-zoom-in" title="放大">+</button>
+        <span class="img-lb-sep"></span>
+        <a class="img-lb-btn" id="btn-lb-download" download title="下载图片">下载</a>
+        <button type="button" class="img-lb-btn" id="btn-lb-open-ext" title="用系统默认照片应用打开">系统打开</button>
+        <button type="button" class="img-lb-btn" id="btn-lb-reveal" title="在资源管理器中显示文件">打开所在文件夹</button>
+        <button type="button" class="img-lb-btn" id="btn-lb-copy-path" title="复制本地路径">复制路径</button>
+        <button type="button" class="img-lb-btn img-lb-close" id="btn-lb-close" title="关闭 (Esc)">✕</button>
+      </div>
+    </div>
+    <div class="img-lightbox-stage" id="lightbox-stage">
+      <img id="lightbox-img" class="img-lightbox-img" alt="图片大图预览" />
+    </div>
+  </div>
+
+  <!-- ==================== Skill Editor Modal (Create / Edit SKILL.md) ==================== -->
+  <div class="modal-backdrop" id="skill-editor-modal">
+    <div class="modal-card modal-wide" style="max-width: 640px;">
+      <div class="modal-header-row">
+        <h2 class="modal-title" id="skill-editor-title">新建 Skill</h2>
+      </div>
+      <div class="skill-form-grid">
+        <div class="form-field">
+          <label for="skill-ed-name">Skill 名称 *</label>
+          <input id="skill-ed-name" class="form-input" type="text" placeholder="例如：算法面试导师 / SQL 调优专家" />
+        </div>
+        <div class="form-field">
+          <label for="skill-ed-slug">调用标识 (/slug，留空自动生成)</label>
+          <input id="skill-ed-slug" class="form-input" style="font-family:var(--font-mono);" type="text" placeholder="例如：sql-optimizer" />
+        </div>
+        <div class="form-field">
+          <label for="skill-ed-category">分类</label>
+          <input id="skill-ed-category" class="form-input" type="text" placeholder="工程开发 / 研究学习 / 效率写作 / 设计前端" />
+        </div>
+        <div class="form-field">
+          <label for="skill-ed-tags">标签（逗号分隔）</label>
+          <input id="skill-ed-tags" class="form-input" type="text" placeholder="sql, database, performance" />
+        </div>
+      </div>
+      <div class="form-field" style="margin-top:8px;">
+        <label for="skill-ed-desc">一句话简介</label>
+        <input id="skill-ed-desc" class="form-input" type="text" placeholder="说明该 Skill 擅长的场景，方便检索与调度" />
+      </div>
+      <div class="form-field" style="margin-top:8px;">
+        <label for="skill-ed-triggers">自动调度触发词（逗号分隔，用户输入命中时自动挂载）</label>
+        <input id="skill-ed-triggers" class="form-input" type="text" placeholder="例如：慢查询, sql 优化, 索引设计, explain" />
+      </div>
+      <div class="skill-ed-toggles-row">
+        <label class="skill-mini-toggle"><input type="checkbox" id="skill-ed-enabled" class="skill-switch-input" checked /><span class="skill-switch-track" aria-hidden="true"></span><span>启用此 Skill</span></label>
+        <label class="skill-mini-toggle"><input type="checkbox" id="skill-ed-auto" class="skill-switch-input" checked /><span class="skill-switch-track" aria-hidden="true"></span><span>允许自动调度</span></label>
+        <label class="skill-mini-toggle"><input type="checkbox" id="skill-ed-pinned" class="skill-switch-input" /><span class="skill-switch-track" aria-hidden="true"></span><span>置顶显示</span></label>
+      </div>
+      <div class="form-field" style="margin-top:8px;">
+        <label for="skill-ed-body">Skill 指令正文 (Markdown) *</label>
+        <textarea id="skill-ed-body" class="feature-textarea" style="font-family:var(--font-mono);font-size:12.5px;" rows="8" placeholder="编写角色规范、工作步骤、输出模板与约束条件…"></textarea>
+      </div>
+      <div class="form-hint" id="skill-ed-status" style="min-height:16px;margin-top:6px;color:var(--danger);"></div>
+      <div class="modal-actions" style="justify-content:flex-end;gap:8px;">
+        <button type="button" class="topbar-pill-btn" id="btn-skill-ed-cancel">取消</button>
+        <button type="button" class="primary-btn" id="btn-skill-ed-save">保存 Skill</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Skill Import Modal (GitHub URL / Local / Raw SKILL.md) ==================== -->
+  <div class="modal-backdrop" id="skill-import-modal">
+    <div class="modal-card modal-wide" style="max-width: 580px;">
+      <div class="modal-header-row">
+        <h2 class="modal-title">导入 Skill 到仓库</h2>
+      </div>
+      <div class="form-field">
+        <label for="skill-imp-url">方式 1：GitHub <code>SKILL.md</code> 链接（支持普通 blob 或 raw URL）</label>
+        <input id="skill-imp-url" class="form-input" style="font-family:var(--font-mono);font-size:12px;" type="text" placeholder="https://github.com/owner/repo/blob/main/skills/my-skill/SKILL.md" />
+      </div>
+      <div class="form-field" style="margin-top:8px;">
+        <label for="skill-imp-path">方式 2：本机文件夹或 <code>SKILL.md</code> 路径</label>
+        <input id="skill-imp-path" class="form-input" style="font-family:var(--font-mono);font-size:12px;" type="text" placeholder="例如：D:\my-skills\paper-helper 或 ...\SKILL.md" />
+      </div>
+      <div class="form-field" style="margin-top:8px;">
+        <label for="skill-imp-slug">自定义 slug（可选，留空自动识别）</label>
+        <input id="skill-imp-slug" class="form-input" style="font-family:var(--font-mono);font-size:12px;" type="text" placeholder="例如：my-imported-skill" />
+      </div>
+      <div class="form-field" style="margin-top:8px;">
+        <label for="skill-imp-raw">方式 3：直接粘贴 <code>SKILL.md</code> 全文</label>
+        <textarea id="skill-imp-raw" class="feature-textarea" style="font-family:var(--font-mono);font-size:12px;" rows="5" placeholder="---&#10;name: 我的技能&#10;triggers: [关键词1, 关键词2]&#10;---&#10;&#10;在这里粘贴指令内容…"></textarea>
+      </div>
+      <div class="form-hint" id="skill-imp-status" style="min-height:16px;margin-top:6px;"></div>
+      <div class="modal-actions" style="justify-content:flex-end;gap:8px;">
+        <button type="button" class="topbar-pill-btn" id="btn-skill-imp-cancel">取消</button>
+        <button type="button" class="primary-btn" id="btn-skill-imp-submit">解析并导入</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Checkpoint Rollback Preview Modal ==================== -->
+  <div class="modal-backdrop" id="checkpoint-modal">
+    <div class="modal-card modal-wide" style="max-width: 560px;">
+      <div class="modal-header-row">
+        <h2 class="modal-title" id="cp-modal-title">回滚工作区到检查点</h2>
+      </div>
+      <div class="form-hint" id="cp-modal-sub" style="margin-bottom: 10px;"></div>
+      <div class="cp-modal-body" id="cp-modal-body"></div>
+      <div class="form-hint" id="cp-modal-status" style="margin-top: 8px; min-height: 18px;"></div>
+      <div class="modal-actions" style="justify-content: flex-end; gap: 8px;">
+        <button type="button" class="topbar-pill-btn" id="btn-cp-cancel">取消</button>
+        <button type="button" class="primary-btn" id="btn-cp-confirm-restore" disabled>确认回滚</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Global Command Palette (Ctrl+Shift+P) ==================== -->
+  <div class="cmdpal-backdrop" id="command-palette-modal" aria-hidden="true">
+    <div class="cmdpal-card" role="dialog" aria-label="全局命令面板">
+      <div class="cmdpal-input-row">
+        <svg class="cmdpal-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="cmdpal-input" class="cmdpal-input" placeholder="输入命令、项目、主题配色、字体、对话或 Skill…" autocomplete="off" />
+        <kbd class="cmdpal-esc-hint">Esc</kbd>
+      </div>
+      <div class="cmdpal-list" id="cmdpal-list"></div>
+      <div class="cmdpal-footer">
+        <span><kbd>↑</kbd> <kbd>↓</kbd> 选择 · <kbd>Enter</kbd> 执行 · <kbd>Ctrl+Shift+P</kbd> 随时唤起</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Workspace Directory Tree Context Menu ==================== -->
+  <div class="rp-tree-ctx-menu" id="rp-tree-ctx-menu" style="display: none;"></div>
+
+  <!-- ==================== Workspace Entry Modal (Create / Rename / Delete) ==================== -->
+  <div class="modal-backdrop" id="workspace-entry-modal">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header-row">
+        <h2 class="modal-title" id="ws-entry-modal-title">新建文件</h2>
+      </div>
+      <div class="form-hint" id="ws-entry-modal-hint" style="margin-bottom: 10px;"></div>
+      <input type="text" id="ws-entry-modal-input" class="form-input" style="font-family:var(--font-mono);font-size:13px;" autocomplete="off" />
+      <div class="form-hint" id="ws-entry-modal-error" style="min-height:18px;margin-top:6px;color:var(--danger);"></div>
+      <div class="modal-actions" style="justify-content:flex-end;gap:8px;margin-top:8px;">
+        <button type="button" class="topbar-pill-btn" id="btn-ws-entry-cancel">取消</button>
+        <button type="button" class="primary-btn" id="btn-ws-entry-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subtle Floating Background Task Toast Stack -->
+  <div class="app-toast-stack" id="app-toast-stack"></div>
+
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>

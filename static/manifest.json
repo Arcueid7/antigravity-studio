@@ -1,0 +1,29 @@
+{
+  "name": "Antigravity Studio",
+  "short_name": "Antigravity",
+  "description": "Local Desktop Studio powered by Google Antigravity CLI (agy)",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FAF9F5",
+  "theme_color": "#FAF9F5",
+  "icons": [
+    {
+      "src": "/static/icon-256.png?v=ag2",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icon-512.png?v=ag2",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icon.svg?v=ag2",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
